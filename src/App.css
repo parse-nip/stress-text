@@ -72,6 +72,7 @@ button {
 }
 
 /* ——— Landing ——— */
+/* Same visual language as story slides: flat fill + shared pattern class */
 
 .landing {
   min-height: 100%;
@@ -82,58 +83,17 @@ button {
   padding: 2.75rem 1.25rem 3.25rem;
   position: relative;
   overflow: hidden;
-  /* Bold field — no black void */
-  background: linear-gradient(155deg, var(--c-magenta) 0%, #ff2d6f 42%, var(--c-cobalt) 100%);
+  isolation: isolate;
 }
 
-/* Seamless scrolling polka dots */
-.landing__pattern {
-  position: absolute;
-  inset: -50%;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.34) 0 3px, transparent 3.5px),
-    radial-gradient(circle at center, rgba(185, 255, 46, 0.28) 0 2px, transparent 2.5px);
-  background-size: 32px 32px, 48px 48px;
-  background-position: 0 0, 16px 16px;
-  animation: polka-scroll 14s linear infinite;
-}
-
-.landing__sky {
+/* Reuse story pattern layers on the landing */
+.landing::before,
+.landing::after {
+  content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  overflow: hidden;
-}
-
-.landing__drift {
-  position: absolute;
-  opacity: 0.35;
-  color: #fff;
-  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.25));
-}
-
-.landing__drift--a {
-  top: 14%;
-  right: 18%;
-  animation: plane-cruise 12s linear infinite;
-}
-
-.landing__drift--b {
-  bottom: 22%;
-  left: 10%;
-  animation: plane-cruise 16s linear infinite reverse;
-  animation-delay: -4s;
-}
-
-.landing__drift--c {
-  top: 58%;
-  right: 8%;
-  opacity: 0.2;
-  animation: plane-cruise 20s linear infinite;
-  animation-delay: -8s;
 }
 
 .landing__brand {
@@ -147,13 +107,13 @@ button {
 .landing__hero-plane {
   margin: 0 auto;
   color: #fff;
-  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.35));
 }
 
 .landing__brand h1 {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(3.1rem, 12vw, 5.6rem);
+  font-size: clamp(3rem, 11vw, 5.2rem);
   letter-spacing: -0.055em;
   text-transform: uppercase;
   margin: 0.85rem 0 0.65rem;
@@ -163,7 +123,7 @@ button {
   flex-direction: column;
   align-items: center;
   gap: 0.02em;
-  text-shadow: 0 8px 36px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 6px 28px rgba(0, 0, 0, 0.45);
 }
 
 .landing__title-line {
@@ -178,8 +138,8 @@ button {
 .landing__tagline {
   max-width: 26rem;
   margin: 0 auto;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: clamp(1.02rem, 2.8vw, 1.15rem);
+  color: var(--foam-dim);
+  font-size: clamp(1.02rem, 2.8vw, 1.12rem);
   font-weight: 500;
   line-height: 1.45;
   text-wrap: balance;
@@ -189,7 +149,7 @@ button {
 .landing__actions {
   position: relative;
   z-index: 1;
-  width: min(440px, 100%);
+  width: min(420px, 100%);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -200,24 +160,20 @@ button {
 .dropzone {
   position: relative;
   width: 100%;
-  padding: 1.85rem 1.5rem;
-  border: 2.5px dashed rgba(255, 255, 255, 0.75);
-  border-radius: 0.65rem;
-  background: rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+  padding: 1.75rem 1.5rem;
+  border: 2.5px dashed rgba(255, 255, 255, 0.55);
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.28);
   cursor: pointer;
   text-align: center;
-  transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
 }
 
 .dropzone:hover,
 .dropzone--active {
   border-color: var(--c-lime);
-  border-style: solid;
-  background: rgba(255, 255, 255, 0.24);
-  transform: translateY(-3px);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
 }
 
 .dropzone--loading {
@@ -228,7 +184,7 @@ button {
 .dropzone__title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 1.28rem;
+  font-size: 1.2rem;
   letter-spacing: -0.02em;
   margin: 0 0 0.45rem;
 }
@@ -241,8 +197,8 @@ button {
 }
 
 .landing__error {
-  color: #fff;
-  background: rgba(0, 0, 0, 0.28);
+  color: #fecdd3;
+  background: rgba(0, 0, 0, 0.35);
   padding: 0.65rem 1rem;
   border-radius: 0.5rem;
   margin: 0;
@@ -253,7 +209,7 @@ button {
   position: relative;
   z-index: 1;
   margin-top: 1.5rem;
-  max-width: 440px;
+  max-width: 420px;
   color: var(--foam-dim);
   font-size: 0.9rem;
   animation: landing-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
@@ -261,7 +217,7 @@ button {
 
 .landing__howto summary {
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 600;
 }
 
@@ -285,7 +241,7 @@ button {
 @keyframes landing-rise {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -296,33 +252,11 @@ button {
 @keyframes accent-pop {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.96);
+    transform: translateY(10px) scale(0.97);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes polka-scroll {
-  from {
-    transform: translate(0, 0);
-  }
-  to {
-    /* One tile of the larger grid → seamless loop */
-    transform: translate(48px, 48px);
-  }
-}
-
-@keyframes plane-cruise {
-  0% {
-    transform: translate(-10vw, 8px) rotate(-12deg);
-  }
-  50% {
-    transform: translate(8vw, -10px) rotate(8deg);
-  }
-  100% {
-    transform: translate(-10vw, 8px) rotate(-12deg);
   }
 }
 
@@ -500,7 +434,7 @@ button {
   isolation: isolate;
 }
 
-/* Shared pattern layers — each slide picks a different motif */
+/* Shared pattern layers — each slide (and landing) picks a motif */
 .story::before,
 .story::after {
   content: '';
@@ -546,7 +480,8 @@ button {
   mix-blend-mode: overlay;
 }
 
-/* Halftone dots */
+/* Halftone dots — shared by story slides + landing */
+.landing.story--pattern-dots::before,
 .story--pattern-dots::before {
   background-image: radial-gradient(rgba(255, 255, 255, 0.22) 1.4px, transparent 1.5px);
   background-size: 14px 14px;
@@ -554,6 +489,7 @@ button {
   opacity: 0.9;
 }
 
+.landing.story--pattern-dots::after,
 .story--pattern-dots::after {
   background: radial-gradient(circle at 80% 20%, rgba(0, 0, 0, 0.35), transparent 45%),
     radial-gradient(circle at 15% 85%, rgba(255, 255, 255, 0.12), transparent 40%);
@@ -1040,8 +976,6 @@ button {
   .chart-years__bar,
   .chart-dwell__bar,
   .chart-gauge__fill,
-  .landing__pattern,
-  .landing__drift,
   .landing__brand,
   .landing__tagline,
   .landing__actions,

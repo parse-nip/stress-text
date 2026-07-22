@@ -31,16 +31,9 @@ export function UploadScreen({ onFile, onDemo, error, loading }: UploadScreenPro
   }
 
   return (
-    <div className="landing">
-      <div className="landing__pattern" aria-hidden />
-      <div className="landing__sky" aria-hidden>
-        <PaperPlane mood="race" size={56} className="landing__drift landing__drift--a" />
-        <PaperPlane mood="idle" size={40} className="landing__drift landing__drift--b" />
-        <PaperPlane mood="cheeky" size={48} className="landing__drift landing__drift--c" />
-      </div>
-
+    <div className="landing story--pattern-dots" style={{ background: 'var(--grad-intro)' }}>
       <header className="landing__brand">
-        <PaperPlane mood="celebrate" size={120} className="landing__hero-plane" />
+        <PaperPlane mood="celebrate" size={104} className="landing__hero-plane" />
         <h1>
           <span className="landing__title-line">Telegram</span>
           <span className="landing__title-line landing__title-line--accent">Wrapped</span>
