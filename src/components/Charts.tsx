@@ -308,3 +308,94 @@ export function MediaStack({
     </div>
   )
 }
+
+/** SVG area/line sparkline for monthly activity. */
+export function MonthSparkline({
+  values,
+  labels,
+  className = '',
+}: {
+  values: number[]
+  labels: string[]
+  className?: string
+}) {
+  const w = 320
+  const h = 120
+  const padX = 8
+  const padY = 12
+  const max = Math.max(...values, 1)
+  const n = Math.max(values.length, 1)
+
+  const points = values.map((v, i) => {
+    const x = padX + (i / Math.max(n - 1, 1)) * (w - padX * 2)
+    const y = h - padY - (v / max) * (h - padY * 2)
+    return { x, y, v, label: labels[i] ?? '' }
+  })
+
+  const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
+  const area = `${line} L ${points[points.length - 1]?.x.toFixed(1) ?? padX} ${(h - padY).toFixed(1)} L ${padX} ${(h - padY).toFixed(1)} Z`
+  const peak = points.reduce((a, b) => (b.v > a.v ? b : a), points[0] ?? { x: 0, y: 0, v: 0, label: '' })
+
+  const tickIdx =
+    n <= 6
+      ? points.map((_, i) => i)
+      : [0, Math.floor((n - 1) / 2), n - 1].filter((v, i, arr) => arr.indexOf(v) === i)
+
+  return (
+    <div className={`chart-spark ${className}`}>
+      <svg viewBox={`0 0 ${w} ${h}`} className="chart-spark__svg" role="img" aria-label="Messages by month">
+        <path className="chart-spark__area" d={area} />
+        <path className="chart-spark__line" d={line} fill="none" />
+        {peak ? (
+          <circle className="chart-spark__peak" cx={peak.x} cy={peak.y} r="5" />
+        ) : null}
+      </svg>
+      <div className="chart-spark__ticks">
+        {tickIdx.map((i) => (
+          <span key={`tick-${i}`}>{labels[i]}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Side-by-side year volume compare. */
+export function YearCompareBars({
+  priorYear,
+  recentYear,
+  priorCount,
+  recentCount,
+  className = '',
+}: {
+  priorYear: number
+  recentYear: number
+  priorCount: number
+  recentCount: number
+  className?: string
+}) {
+  const max = Math.max(priorCount, recentCount, 1)
+  return (
+    <div className={`chart-years ${className}`} role="img" aria-label="Year comparison">
+      <div className="chart-years__col">
+        <div className="chart-years__bar-wrap">
+          <div
+            className="chart-years__bar chart-years__bar--prior"
+            style={{ height: `${(priorCount / max) * 100}%` }}
+          />
+        </div>
+        <span className="chart-years__year">{priorYear}</span>
+        <span className="chart-years__count">{priorCount.toLocaleString()}</span>
+      </div>
+      <div className="chart-years__col">
+        <div className="chart-years__bar-wrap">
+          <div
+            className="chart-years__bar chart-years__bar--recent"
+            style={{ height: `${(recentCount / max) * 100}%` }}
+          />
+        </div>
+        <span className="chart-years__year">{recentYear}</span>
+        <span className="chart-years__count">{recentCount.toLocaleString()}</span>
+      </div>
+    </div>
+  )
+}

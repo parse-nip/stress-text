@@ -6,12 +6,15 @@ import { buildDemoExport } from './demoExport'
 import { parseExport, detectParticipants } from './parseTelegram'
 import { computeWrappedStats, finalizeBadges } from './computeStats'
 import {
+  anniversaryCopy,
   comebackCopy,
   introCopy,
   nightOwlCopy,
   streakCopy,
   volumeCopy,
+  yearCompareCopy,
 } from './flavorCopy'
+import { who } from './format'
 import type { WrappedStats } from '../types/telegram'
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -21,7 +24,7 @@ function assert(cond: unknown, msg: string): asserts cond {
 const { exportMeta, messages } = parseExport(buildDemoExport())
 const people = detectParticipants(messages)
 const youId = people.find((p) => p.name === 'Alex')?.id ?? people[0].id
-const base = finalizeBadges(computeWrappedStats(messages, youId, exportMeta.name, 2025))
+const base = finalizeBadges(computeWrappedStats(messages, youId, exportMeta.name, null))
 
 // Volume: blow out your lead → "Wow, you had a lot to say"
 const blowout: WrappedStats = {
@@ -58,6 +61,12 @@ assert(
   'long comeback',
 )
 
+assert(anniversaryCopy(base).includes('chatting since'), 'anniversary copy')
+assert(base.yearCompare != null, 'year compare present for demo')
+assert(yearCompareCopy(base).includes('2025') || yearCompareCopy(base).includes('2024'), 'year copy')
+assert(who(base.you.name, base.you.name) === 'You', 'who() maps self to You')
+assert(who(base.you.name, base.them.name) === base.them.name, 'who() keeps their name')
+
 console.log('✓ flavorCopy tests passed')
 console.log(
   JSON.stringify(
@@ -66,6 +75,8 @@ console.log(
       volumeTied: volumeCopy(tied),
       introDemo: introCopy(base),
       streakDemo: streakCopy(base),
+      anniversary: anniversaryCopy(base),
+      yearCompare: yearCompareCopy(base),
     },
     null,
     2,

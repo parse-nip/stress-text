@@ -778,6 +778,18 @@ button {
   text-shadow: 0 6px 30px rgba(0, 0, 0, 0.45);
 }
 
+.stat-card__mega--date {
+  font-size: clamp(1.8rem, 7vw, 2.75rem);
+  line-height: 1.1;
+  margin-top: 0.35rem;
+}
+
+.stat-card__mega--word {
+  font-size: clamp(2.2rem, 9vw, 3.6rem);
+  line-height: 1.05;
+  text-transform: lowercase;
+}
+
 .stat-card__mega-label {
   display: block;
   margin-top: 0.35rem;
@@ -1490,6 +1502,152 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.summary-toggle {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+  padding: 0.25rem;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 0.5rem;
+  width: 100%;
+}
+
+.summary-toggle__btn {
+  flex: 1;
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-toggle__btn--on {
+  background: var(--c-lime);
+  color: #0a0410;
+}
+
+.summary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.summary-actions .btn--export {
+  margin-top: 0;
+  width: 100%;
+}
+
+.btn--export-secondary {
+  background: transparent;
+  color: var(--foam);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+}
+
+.btn--export-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.chart-spark {
+  width: 100%;
+}
+
+.chart-spark__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.chart-spark__area {
+  fill: rgba(185, 255, 46, 0.28);
+}
+
+.chart-spark__line {
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-spark__peak {
+  fill: var(--c-lime);
+  stroke: #0a0410;
+  stroke-width: 2;
+}
+
+.chart-spark__ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.chart-years {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  height: 10rem;
+  margin-top: 0.5rem;
+}
+
+.chart-years__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  height: 100%;
+  width: 5rem;
+}
+
+.chart-years__bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.chart-years__bar {
+  width: 100%;
+  max-width: 3.25rem;
+  min-height: 8px;
+  border-radius: 0.35rem 0.35rem 0 0;
+  animation: bar-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.chart-years__bar--prior {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.chart-years__bar--recent {
+  background: var(--c-lime);
+}
+
+.chart-years__year {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.chart-years__count {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.8;
 }
 
 .summary-grid {

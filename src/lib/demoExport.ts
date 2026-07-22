@@ -37,6 +37,22 @@ export function buildDemoExport(): TelegramExport {
   const messages: TelegramExport['messages'] = []
   let id = 1
 
+  // Seed late 2024 so year-vs-year + monthly sparkline have range
+  const priorStart = new Date('2024-11-01T10:00:00')
+  for (let day = 0; day < 40; day++) {
+    const base = new Date(priorStart)
+    base.setDate(priorStart.getDate() + day)
+    const morning = new Date(base)
+    morning.setHours(10, 0, 0, 0)
+    messages.push(msg(id++, you, youId, morning, 'coffee run later?'))
+    messages.push(
+      msg(id++, them, themId, new Date(morning.getTime() + 5 * 60_000), 'coffee run sounds perfect'),
+    )
+    messages.push(
+      msg(id++, you, youId, new Date(morning.getTime() + 12 * 60_000), 'yes coffee run confirmed'),
+    )
+  }
+
   const start = new Date('2025-01-05T10:00:00')
   // ~50 days of messaging with a gap in the middle for "comeback"
   for (let day = 0; day < 55; day++) {

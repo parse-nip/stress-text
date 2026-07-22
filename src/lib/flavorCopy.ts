@@ -1,10 +1,19 @@
 /**
- * Value-dependent story copy — cheeky, content-blind, never mean.
- * Thresholds are tuned for typical 1:1 chat volumes (demo ~300 msgs).
+ * Value-dependent story copy — cheeky, never mean.
+ * After the user picks themselves, their username is always rendered as "You".
  */
 
 import type { WrappedStats } from '../types/telegram'
-import { formatDuration, formatHour, formatNumber, formatPct, formatVoice, possessive } from './format'
+import {
+  formatDuration,
+  formatHour,
+  formatLongDate,
+  formatNumber,
+  formatPct,
+  formatVoice,
+  who,
+  whose,
+} from './format'
 
 const HOUR = 3_600_000
 const DAY = 86_400_000
@@ -16,6 +25,14 @@ function ratio(a: number, b: number): number {
   return lo === 0 ? Infinity : hi / lo
 }
 
+function label(stats: WrappedStats, name: string | null | undefined): string {
+  return who(stats.you.name, name)
+}
+
+function owned(stats: WrappedStats, name: string | null | undefined): string {
+  return whose(stats.you.name, name)
+}
+
 export function introCopy(stats: WrappedStats): string {
   const n = stats.totalMessages
   const chat = stats.chatName
@@ -25,6 +42,42 @@ export function introCopy(stats: WrappedStats): string {
   if (n >= 500) return `Your year in ${chat}${yearBit}. A healthy stack of paper planes.`
   if (n >= 100) return `Your year in ${chat}${yearBit}. Buckle up.`
   return `Your year in ${chat}${yearBit}. Short chat, still worth wrapping.`
+}
+
+export function anniversaryCopy(stats: WrappedStats): string {
+  const since = formatLongDate(stats.dateRange.start)
+  const age = stats.chatAgeMs
+  if (age < DAY) return `You've been chatting since ${since}. Brand new altitude.`
+  if (age < 30 * DAY) return `You've been chatting since ${since}. Still in the honeymoon ping phase.`
+  if (age < 365 * DAY) return `You've been chatting since ${since}. ${formatDuration(age)} of paper planes.`
+  return `You've been chatting since ${since}. A multi-year saga.`
+}
+
+export function monthlyCopy(stats: WrappedStats): string {
+  const months = stats.monthHistogram
+  if (months.length === 0) return 'Not enough timeline to sketch a sparkline.'
+  const peak = months.reduce((a, b) => (b.count > a.count ? b : a), months[0])
+  if (months.length < 3) return `Peak month: ${peak.label} (${formatNumber(peak.count)} messages).`
+  const quiet = months.reduce((a, b) => (b.count < a.count ? b : a), months[0])
+  if (peak.count >= quiet.count * 3 && quiet.count > 0) {
+    return `${peak.label} was the hot streak (${formatNumber(peak.count)}). ${quiet.label} took a nap.`
+  }
+  return `Messages over time — peak in ${peak.label} with ${formatNumber(peak.count)}.`
+}
+
+export function yearCompareCopy(stats: WrappedStats): string {
+  const yc = stats.yearCompare
+  if (!yc) return 'One-year wonder — nothing to compare yet.'
+  const { recentYear, priorYear, recentCount, priorCount } = yc
+  if (recentCount === priorCount) {
+    return `${recentYear} vs ${priorYear}: dead heat at ${formatNumber(recentCount)} each.`
+  }
+  if (recentCount > priorCount) {
+    const pct = Math.round(((recentCount - priorCount) / Math.max(priorCount, 1)) * 100)
+    return `${recentYear} out-chatted ${priorYear} by ${formatNumber(recentCount - priorCount)} messages (+${pct}%).`
+  }
+  const pct = Math.round(((priorCount - recentCount) / Math.max(recentCount, 1)) * 100)
+  return `${priorYear} was louder — ${formatNumber(priorCount - recentCount)} more messages than ${recentYear} (${pct}% up).`
 }
 
 export function volumeCopy(stats: WrappedStats): string {
@@ -81,7 +134,7 @@ export function replySpeedCopy(stats: WrappedStats): string {
 
 export function leftOnReadCopy(stats: WrappedStats): string {
   const ms = stats.longestLeftOnReadMs
-  const by = stats.longestLeftOnReadBy
+  const by = label(stats, stats.longestLeftOnReadBy)
   if (ms <= 0) return 'No legendary pauses. A chat that never left anyone hanging.'
   if (ms < HOUR) {
     return by
@@ -106,7 +159,7 @@ export function leftOnReadCopy(stats: WrappedStats): string {
 export function nightOwlCopy(stats: WrappedStats): string {
   const { you, them } = stats
   const pct = you.lateNightPct
-  const badge = stats.badges.nightOwl
+  const badge = label(stats, stats.badges.nightOwl)
   const themBit = ` ${them.name}: ${formatPct(them.lateNightPct)}.`
 
   if (pct < 2) {
@@ -145,7 +198,7 @@ export function openerCopy(stats: WrappedStats): string {
   const { you, them } = stats
   const youLead = you.daysStarted >= them.daysStarted
   const r = ratio(you.daysStarted, them.daysStarted)
-  const name = stats.badges.mostReliableOpener
+  const name = label(stats, stats.badges.mostReliableOpener)
 
   if (you.daysStarted + them.daysStarted === 0) {
     return 'No clear openers yet — the chat just… appeared.'
@@ -158,7 +211,7 @@ export function openerCopy(stats: WrappedStats): string {
     return `Most reliable opener: you. First message of the day, on repeat.`
   }
   if (r >= 2.5) return `${them.name} wakes the chat up. Consistently.`
-  return `${possessive(them.name)} the first hello most days.`
+  return `${owned(stats, them.name)} the first hello most days.`
 }
 
 export function doubleTextCopy(stats: WrappedStats): string {
@@ -166,22 +219,23 @@ export function doubleTextCopy(stats: WrappedStats): string {
   const king = you.maxConsecutiveWithoutReply >= them.maxConsecutiveWithoutReply ? you : them
   const n = king.maxConsecutiveWithoutReply
   const times = king.timesDoubleTexted
-  const who = king.name === you.name ? 'Your' : possessive(king.name)
+  const whoLabel = label(stats, king.name)
+  const ownedLabel = owned(stats, king.name)
 
   if (n <= 1) return 'No double-text streaks. Extreme chill. Rare.'
   if (n === 2) {
     return times > 0
-      ? `${who} classic double-text. Happened ${formatNumber(times)} times.`
-      : `${who} classic double-text streak.`
+      ? `${ownedLabel} classic double-text. Happened ${formatNumber(times)} times.`
+      : `${ownedLabel} classic double-text streak.`
   }
   if (n <= 4) {
     return times > 0
-      ? `${who} longest no-reply streak: ${n}. Double+ texted ${formatNumber(times)} times. Commitment.`
-      : `${who} longest no-reply streak: ${n}. Commitment.`
+      ? `${ownedLabel} longest no-reply streak: ${n}. Double+ texted ${formatNumber(times)} times. Commitment.`
+      : `${ownedLabel} longest no-reply streak: ${n}. Commitment.`
   }
   return times > 0
-    ? `${n} in a row from ${king.name}. Novel energy. Double+ ${formatNumber(times)} times.`
-    : `${n} in a row from ${king.name}. Novel energy.`
+    ? `${n} in a row from ${whoLabel}. Novel energy. Double+ ${formatNumber(times)} times.`
+    : `${n} in a row from ${whoLabel}. Novel energy.`
 }
 
 export function oneSidedCopy(stats: WrappedStats): string {
@@ -189,8 +243,9 @@ export function oneSidedCopy(stats: WrappedStats): string {
   if (!d || d.imbalance === 0) return 'Surprisingly balanced. Weirdly wholesome.'
 
   const { you, them } = stats
-  const leader =
+  const leaderRaw =
     d.leaderId === you.id ? you.name : d.leaderId === them.id ? them.name : 'someone'
+  const leader = label(stats, leaderRaw)
   const gap = d.imbalance
 
   if (gap < 5) return `Message gap on ${d.dateKey}. Barely tilted — ${leader} nudged ahead.`
@@ -203,45 +258,49 @@ export function voiceCopy(stats: WrappedStats): string {
   const total = you.voiceCount + them.voiceCount
   const longest = Math.max(you.longestVoiceSec, them.longestVoiceSec)
   const king = you.voiceCount >= them.voiceCount ? you : them
+  const kingLabel = label(stats, king.name)
 
   if (total === 0) return 'Zero voice notes. Typed loyalty. Respect.'
   if (total <= 3) {
     return `A rare voice sighting. Longest: ${formatVoice(longest)}.`
   }
   if (longest >= 120) {
-    return `Longest: ${formatVoice(longest)} — a podcast episode. ${king.name} sent the most (${formatNumber(king.voiceCount)}).`
+    return `Longest: ${formatVoice(longest)} — a podcast episode. ${kingLabel} sent the most (${formatNumber(king.voiceCount)}).`
   }
-  return `Longest: ${formatVoice(longest)}. ${king.name} sent the most (${formatNumber(king.voiceCount)}).`
+  return `Longest: ${formatVoice(longest)}. ${kingLabel} sent the most (${formatNumber(king.voiceCount)}).`
 }
 
 export function mediaCopy(stats: WrappedStats): string {
   const { you, them } = stats
   const total = you.mediaCount + them.mediaCount
   const king = you.mediaCount >= them.mediaCount ? you : them
+  const kingLabel = label(stats, king.name)
   const photos = you.photoCount + them.photoCount
   const videos = you.videoCount + them.videoCount
 
   if (total === 0) return 'No photos or videos in this slice. Pure text era.'
-  if (total <= 5) return `${king.name} shared the most media — a tasteful handful.`
+  if (total <= 5) return `${kingLabel} shared the most media — a tasteful handful.`
   if (videos > photos && videos > 0) {
-    return `${king.name} shared the most media. Video-forward friendship.`
+    return `${kingLabel} shared the most media. Video-forward friendship.`
   }
   if (photos >= 50) {
-    return `${king.name} flooded the album — ${formatNumber(king.mediaCount)} media drops.`
+    return `${kingLabel} flooded the album — ${formatNumber(king.mediaCount)} media drops.`
   }
-  return `${king.name} shared the most media.`
+  return `${kingLabel} shared the most media.`
 }
 
 export function essayCopy(stats: WrappedStats): string {
   const { you, them } = stats
   const longest = you.longestMessageWords >= them.longestMessageWords ? you : them
   const words = longest.longestMessageWords
-  const badge = stats.badges.essayWriter
+  const badge = label(stats, stats.badges.essayWriter)
+  const ownedLabel = owned(stats, longest.name)
+  const whoLabel = label(stats, longest.name)
 
   if (words < 20) return `Short and sweet maxes. Badge: ${badge}.`
-  if (words < 80) return `${possessive(longest.name)} solid paragraph. Badge: ${badge}.`
-  if (words < 200) return `${possessive(longest.name)} magnum opus. Badge: ${badge}.`
-  return `${words} words from ${longest.name}. That's a scroll. Badge: ${badge}.`
+  if (words < 80) return `${ownedLabel} solid paragraph. Badge: ${badge}.`
+  if (words < 200) return `${ownedLabel} magnum opus. Badge: ${badge}.`
+  return `${words} words from ${whoLabel}. That's a scroll. Badge: ${badge}.`
 }
 
 export function chaosCopy(stats: WrappedStats): string {
@@ -252,17 +311,33 @@ export function chaosCopy(stats: WrappedStats): string {
   const spice = bangs + caps * 2 + edits
 
   if (spice === 0) return 'No bangs, no caps, no edits. Zen punctuation monastery.'
-  if (spice < 10) return 'A light dusting of chaos. Still content-blind.'
-  if (caps >= 10 && caps >= bangs) return 'ALL CAPS era detected. Still content-blind. Just vibes.'
+  if (spice < 10) return 'A light dusting of chaos. Still mostly vibes.'
+  if (caps >= 10 && caps >= bangs) return 'ALL CAPS era detected. Enthusiasm undocumented.'
   if (edits >= 15) return 'Heavy edit energy. Draft → send → oops → edit.'
   if (bangs >= 30) return 'Exclamation rain. Enthusiasm undocumented, clearly present.'
-  return 'Still content-blind. Just vibes and punctuation.'
+  return 'Just vibes and punctuation metadata.'
+}
+
+export function lexCopy(stats: WrappedStats): string {
+  const phrase = stats.topPhrase
+  const word = stats.topWord
+  const pick = phrase && phrase.count >= (word?.count ?? 0) ? phrase : word
+  if (!pick) return 'No standout words after filtering the filler. Mysterious.'
+
+  const leader = label(stats, pick.leader)
+  const crown = leader ? ` ${leader} said it most.` : ''
+  if (pick.kind === 'phrase') {
+    if (pick.count >= 20) return `"${pick.value}" on loop.${crown} Official catchphrase.`
+    return `"${pick.value}" showed up ${formatNumber(pick.count)} times.${crown}`
+  }
+  if (pick.count >= 40) return `"${pick.value}" is the house word.${crown}`
+  return `"${pick.value}" — used ${formatNumber(pick.count)} times.${crown}`
 }
 
 export function emojiCopy(stats: WrappedStats): string {
   if (!stats.topEmoji) return 'A surprisingly emoji-free zone. Minimalist icons.'
   const n = stats.topEmojiCount
-  const leader = stats.topEmojiLeader
+  const leader = label(stats, stats.topEmojiLeader)
   const crown = leader ? ` ${leader} wore the crown.` : ''
 
   if (n < 5) return `Used ${formatNumber(n)} times.${crown} A subtle signature.`

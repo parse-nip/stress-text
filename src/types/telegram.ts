@@ -98,11 +98,35 @@ export interface DayActivity {
   leaderId: string | null
 }
 
+export interface MonthBucket {
+  /** YYYY-MM */
+  key: string
+  /** Short axis label */
+  label: string
+  count: number
+}
+
+export interface YearCompare {
+  recentYear: number
+  priorYear: number
+  recentCount: number
+  priorCount: number
+}
+
+export interface TopLexemeStat {
+  value: string
+  count: number
+  leader: string | null
+  kind: 'word' | 'phrase'
+}
+
 export interface WrappedStats {
   chatName: string
   year: number | null
   totalMessages: number
   dateRange: { start: Date; end: Date }
+  /** Age of the filtered chat window (last − first message) */
+  chatAgeMs: number
   you: PersonStats
   them: PersonStats
   people: PersonStats[]
@@ -122,10 +146,18 @@ export interface WrappedStats {
   hourHistogram: number[]
   /** Messages per weekday (0=Sun … 6=Sat) */
   dowHistogram: number[]
+  /** Contiguous month buckets across the filtered range */
+  monthHistogram: MonthBucket[]
+  /** Present when the filtered export spans 2+ calendar years (all-time view) */
+  yearCompare: YearCompare | null
   mostOneSidedDay: DayActivity | null
   topEmoji: string | null
   topEmojiCount: number
   topEmojiLeader: string | null
+  /** Most common non-stop word (client-only lexical peek) */
+  topWord: TopLexemeStat | null
+  /** Most common 2-word phrase */
+  topPhrase: TopLexemeStat | null
   badges: {
     fastestReplier: string
     nightOwl: string

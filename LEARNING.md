@@ -30,6 +30,9 @@ Track what you understand as we build. Check items only when you can explain the
 - [ ] Why a paper-plane mascot recurs on every card (brand motif / reaction)
 - [ ] Why copy is cheeky but not judgmental
 - [ ] Why **flavor copy** branches on thresholds (e.g. 3× message lead → “Wow, you had a lot to say”) instead of one fixed caption per card
+- [ ] Why we say **“You”** after the participant picker instead of the Telegram display name
+- [ ] Why top word/phrase is an intentional (client-only) exception to content-blindness
+- [ ] Why `flipPerspective` exists — so you can download *their* summary card to send them
 
 ## 4. Broader impact
 

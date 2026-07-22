@@ -17,6 +17,7 @@ assert(messages.length > 50, 'demo should have a meaty message count')
 
 const youId = people.find((p) => p.name === 'Alex')?.id ?? people[0].id
 const stats = finalizeBadges(computeWrappedStats(messages, youId, exportMeta.name, 2025))
+const allTime = finalizeBadges(computeWrappedStats(messages, youId, exportMeta.name, null))
 
 assert(stats.totalMessages > 0, 'total messages')
 assert(stats.you.name === 'Alex', `you should be Alex, got ${stats.you.name}`)
@@ -36,6 +37,14 @@ assert(stats.dowHistogram.length === 7, 'dow histogram length')
 assert(stats.hourHistogram.reduce((a, b) => a + b, 0) === stats.totalMessages, 'hour hist sums to total')
 assert(stats.dowHistogram.reduce((a, b) => a + b, 0) === stats.totalMessages, 'dow hist sums to total')
 assert(stats.hourHistogram[stats.primeHour] === Math.max(...stats.hourHistogram), 'prime hour is max')
+assert(stats.monthHistogram.length >= 2, 'month histogram should span months')
+assert(stats.chatAgeMs > 0, 'chat age')
+assert(allTime.yearCompare != null, 'all-time demo should span two years')
+assert(allTime.yearCompare!.recentYear === 2025, 'recent year')
+assert(allTime.yearCompare!.priorYear === 2024, 'prior year')
+assert(allTime.monthHistogram.length >= 3, 'all-time months span 2024→2025')
+assert(allTime.topWord != null || allTime.topPhrase != null, 'expected a top word or phrase')
+assert(allTime.topPhrase?.value.includes('coffee') || allTime.topWord?.value === 'coffee', 'coffee catchphrase')
 
 console.log('✓ computeStats tests passed')
 console.log(
@@ -45,6 +54,10 @@ console.log(
       streak: stats.longestDailyStreak,
       nightYou: Math.round(stats.you.lateNightPct),
       topEmoji: stats.topEmoji,
+      topWord: allTime.topWord,
+      topPhrase: allTime.topPhrase,
+      yearCompare: allTime.yearCompare,
+      months: allTime.monthHistogram.length,
       badges: stats.badges,
       comebackDays: Math.round(stats.comebackGapMs / 86_400_000),
       primeHour: stats.primeHour,

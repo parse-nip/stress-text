@@ -37,5 +37,31 @@ export function formatVoice(sec: number): string {
 
 export function possessive(name: string): string {
   if (!name) return ''
+  if (name === 'You' || name === 'you') return 'Your'
   return name.endsWith('s') ? `${name}'` : `${name}'s`
+}
+
+/** After the user picks themselves, never show their username — always "You". */
+export function who(youName: string, name: string | null | undefined): string {
+  if (!name) return ''
+  if (name === youName || name === 'You' || name === 'you') return 'You'
+  return name
+}
+
+export function whose(youName: string, name: string | null | undefined): string {
+  if (!name) return ''
+  if (name === youName || name === 'You' || name === 'you') return 'Your'
+  return possessive(name)
+}
+
+export function formatLongDate(d: Date): string {
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+}
+
+export function formatMonthKey(key: string): string {
+  const [ys, ms] = key.split('-')
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const m = Number(ms) - 1
+  const y = ys.slice(2)
+  return `${months[m] ?? ms} '${y}`
 }
