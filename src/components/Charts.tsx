@@ -1,5 +1,8 @@
 /** Lightweight SVG/CSS charts for story cards — no chart library. */
 
+import type { CSSProperties } from 'react'
+import { formatDuration } from '../lib/format'
+
 interface BarItem {
   label: string
   value: number
@@ -132,7 +135,7 @@ export function SplitDonut({
   )
 }
 
-/** Arc gauge 0–100 for night-owl %. */
+/** Arc gauge 0–100 for night-owl %. Draws left → right from empty. */
 export function ArcGauge({
   value,
   label,
@@ -144,8 +147,8 @@ export function ArcGauge({
 }) {
   const pct = Math.max(0, Math.min(100, value)) / 100
   const r = 54
-  const c = Math.PI * r // semicircle
-  const filled = pct * c
+  const c = Math.PI * r // semicircle length
+  const endOffset = c * (1 - pct)
 
   return (
     <div className={`chart-gauge ${className}`} role="img" aria-label={label ?? `${Math.round(value)}%`}>
@@ -163,7 +166,14 @@ export function ArcGauge({
           fill="none"
           strokeWidth="12"
           strokeLinecap="round"
-          strokeDasharray={`${filled} ${c}`}
+          strokeDasharray={c}
+          strokeDashoffset={endOffset}
+          style={
+            {
+              '--gauge-from': String(c),
+              '--gauge-to': String(endOffset),
+            } as CSSProperties
+          }
         />
         <text x="70" y="68" textAnchor="middle" className="chart-gauge__num">
           {Math.round(value)}%
@@ -354,6 +364,52 @@ export function MonthSparkline({
         {tickIdx.map((i) => (
           <span key={`tick-${i}`}>{labels[i]}</span>
         ))}
+      </div>
+    </div>
+  )
+}
+
+/** Side-by-side dwell times — taller bar = longer wait (polish vs reply). */
+export function DwellCompare({
+  leftLabel,
+  leftMs,
+  rightLabel,
+  rightMs,
+  className = '',
+}: {
+  leftLabel: string
+  leftMs: number
+  rightLabel: string
+  rightMs: number
+  className?: string
+}) {
+  const max = Math.max(leftMs, rightMs, 1)
+  const leftH = Math.max(0.08, leftMs / max)
+  const rightH = Math.max(0.08, rightMs / max)
+  const leftWins = leftMs >= rightMs
+
+  return (
+    <div
+      className={`chart-dwell ${className}`}
+      role="img"
+      aria-label={`${leftLabel} ${formatDuration(leftMs)}, ${rightLabel} ${formatDuration(rightMs)}`}
+    >
+      <div className={`chart-dwell__col${leftWins ? ' chart-dwell__col--hot' : ''}`}>
+        <div className="chart-dwell__bar-wrap">
+          <div className="chart-dwell__bar chart-dwell__bar--left" style={{ height: `${leftH * 100}%` }} />
+        </div>
+        <span className="chart-dwell__time">{formatDuration(leftMs)}</span>
+        <span className="chart-dwell__label">{leftLabel}</span>
+      </div>
+      <div className="chart-dwell__vs" aria-hidden>
+        vs
+      </div>
+      <div className={`chart-dwell__col${!leftWins ? ' chart-dwell__col--hot' : ''}`}>
+        <div className="chart-dwell__bar-wrap">
+          <div className="chart-dwell__bar chart-dwell__bar--right" style={{ height: `${rightH * 100}%` }} />
+        </div>
+        <span className="chart-dwell__time">{formatDuration(rightMs)}</span>
+        <span className="chart-dwell__label">{rightLabel}</span>
       </div>
     </div>
   )

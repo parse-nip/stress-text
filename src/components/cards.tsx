@@ -41,6 +41,7 @@ import { StatCard } from './StatCard'
 import { LaughCascade, StarField } from './CardMotifs'
 import {
   ArcGauge,
+  DwellCompare,
   HorizontalRankBars,
   MediaStack,
   MonthSparkline,
@@ -639,62 +640,40 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           },
         ] as StorySlide[])
       : []),
-    ...(you.avgEditDelayMs != null || them.avgEditDelayMs != null
+    ...(you.avgEditDelayMs != null && you.avgReplyMs != null
       ? ([
           {
             id: 'polish-vs-reply',
             gradient: 'var(--grad-read)',
-            pattern: 'halftone',
+            pattern: 'none',
             render: () => {
-              const polish = you.avgEditDelayMs ?? them.avgEditDelayMs
-              const reply = you.avgReplyMs ?? them.avgReplyMs
+              const polish = you.avgEditDelayMs!
+              const reply = you.avgReplyMs!
+              const overthinks = polish > reply * 1.4
+              const quickFix = reply > polish * 1.4
               return (
                 <StatCard
                   mood="think"
                   layout="chart"
-                  eyebrow="Polish vs reply"
-                  headline={<span className="stat-card__line">Speed of second thoughts</span>}
+                  eyebrow={overthinks ? 'Overthinking' : quickFix ? 'Quick polish' : 'Second thoughts'}
+                  headline={
+                    <span className="stat-card__line">
+                      {overthinks
+                        ? 'You sit with it'
+                        : quickFix
+                          ? 'Edit finger first'
+                          : 'Polish vs reply'}
+                    </span>
+                  }
                   sub={copy.polishVsReply}
                 >
-                  <HorizontalRankBars
-                    items={[
-                      {
-                        label: 'Your polish',
-                        value: polish ?? 0,
-                        display: polish != null ? formatDuration(polish) : '—',
-                      },
-                      {
-                        label: 'Your reply',
-                        value: you.avgReplyMs ?? 0,
-                        display:
-                          you.avgReplyMs != null ? formatDuration(you.avgReplyMs) : '—',
-                      },
-                      ...(them.avgEditDelayMs != null
-                        ? [
-                            {
-                              label: `${them.name} polish`,
-                              value: them.avgEditDelayMs,
-                              display: formatDuration(them.avgEditDelayMs),
-                            },
-                          ]
-                        : []),
-                      ...(reply != null && you.avgReplyMs == null
-                        ? [
-                            {
-                              label: `${them.name} reply`,
-                              value: them.avgReplyMs ?? 0,
-                              display:
-                                them.avgReplyMs != null
-                                  ? formatDuration(them.avgReplyMs)
-                                  : '—',
-                            },
-                          ]
-                        : []),
-                    ]}
+                  <DwellCompare
+                    leftLabel="Polish"
+                    leftMs={polish}
+                    rightLabel="Reply"
+                    rightMs={reply}
                   />
-                  <p className="chart-caption">
-                    Exports have no read receipts — polish = send → edit delay
-                  </p>
+                  <p className="chart-caption">Time from send → edit vs your usual reply</p>
                 </StatCard>
               )
             },

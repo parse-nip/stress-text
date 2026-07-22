@@ -23,6 +23,7 @@ Track what you understand as we build. Check items only when you can explain the
 - [ ] How to keep autoplay *and* avoid rush: longer beats on dense cards + **hold pauses without skipping** (tap = skip, hold = linger)
 - [ ] Why sticky pause (button) is separate from press-and-hold pause (temporary)
 - [ ] Why vertical bar grow animations need `transform-origin: bottom` (default center makes bars “inflate” weirdly)
+- [ ] Why SVG gauge draws need `stroke-dashoffset` from path length → remaining (a hardcoded offset makes the round linecap “dot” jump sides)
 
 ## 3. Design decisions
 

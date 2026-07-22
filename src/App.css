@@ -936,7 +936,9 @@ button {
 
   .motif--stars i,
   .laugh-cascade__chip,
-  .chart-years__bar {
+  .chart-years__bar,
+  .chart-dwell__bar,
+  .chart-gauge__fill {
     animation: none !important;
   }
 }
@@ -1360,8 +1362,81 @@ button {
 
 @keyframes gauge-draw {
   from {
-    stroke-dashoffset: 170;
+    stroke-dashoffset: var(--gauge-from);
   }
+  to {
+    stroke-dashoffset: var(--gauge-to);
+  }
+}
+
+.chart-dwell {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.75rem;
+  height: 10rem;
+  margin-top: 0.35rem;
+}
+
+.chart-dwell__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  height: 100%;
+  width: 5.5rem;
+}
+
+.chart-dwell__bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.chart-dwell__bar {
+  width: 100%;
+  max-width: 3rem;
+  min-height: 8px;
+  border-radius: 0.35rem 0.35rem 0 0;
+  transform-origin: bottom center;
+  animation: year-bar-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.chart-dwell__col:nth-child(3) .chart-dwell__bar {
+  animation-delay: 0.12s;
+}
+
+.chart-dwell__col--hot .chart-dwell__bar {
+  background: var(--c-lime);
+}
+
+.chart-dwell__time {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.chart-dwell__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.chart-dwell__vs {
+  align-self: center;
+  padding-bottom: 2.4rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.45;
 }
 
 .chart-wave {

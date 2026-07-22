@@ -350,11 +350,11 @@ export function editSpiralCopy(stats: WrappedStats): string {
  * so we compare polish time (send → edit) vs reply speed.
  */
 export function polishVsReplyCopy(stats: WrappedStats): string {
-  const { you, them } = stats
+  const { you } = stats
   const polish = you.avgEditDelayMs
-  const reply = you.avgReplyMs ?? them.avgReplyMs
+  const reply = you.avgReplyMs
 
-  if (polish == null && you.editedCount === 0 && them.editedCount === 0) {
+  if (polish == null && you.editedCount === 0) {
     return 'No edit timestamps to compare — pure send-and-forget.'
   }
   if (polish == null) {
@@ -365,12 +365,12 @@ export function polishVsReplyCopy(stats: WrappedStats): string {
   }
 
   if (polish > reply * 1.4) {
-    return `You polish for ${formatDuration(polish)} on average — longer than a typical reply (${formatDuration(reply)}). Overthink champion.`
+    return `You spend ${formatDuration(polish)} rewriting — longer than a typical reply (${formatDuration(reply)}). The draft got a sequel.`
   }
   if (reply > polish * 1.4) {
-    return `Quick fixes (${formatDuration(polish)}) vs slower replies (${formatDuration(reply)}). Edit finger faster than reply finger.`
+    return `You fix typos in ${formatDuration(polish)}, but replies take ${formatDuration(reply)}. Fast editor, slower conversationalist.`
   }
-  return `Polish (${formatDuration(polish)}) and replies (${formatDuration(reply)}) run on a similar clock.`
+  return `Rewrites (${formatDuration(polish)}) and replies (${formatDuration(reply)}) tick at about the same pace.`
 }
 
 export function lexCopy(stats: WrappedStats): string {
