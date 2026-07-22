@@ -3,11 +3,53 @@ import { toPng } from 'html-to-image'
 import type { WrappedStats } from '../types/telegram'
 import { formatDuration, formatHour, formatNumber, formatPct, formatVoice } from '../lib/format'
 import { StatCard } from './StatCard'
-import { RacingPlanes } from './PaperPlane'
+import {
+  ArcGauge,
+  HorizontalRankBars,
+  MediaStack,
+  SplitDonut,
+  SpeedMeters,
+  StreakDots,
+  VerticalBars,
+  Waveform,
+} from './Charts'
+
+const DOW_SHORT = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+
+function hourLabels(hourHistogram: number[], highlightHour: number) {
+  return hourHistogram.map((value, h) => ({
+    label: h % 3 === 0 ? String(h) : '',
+    value,
+    highlight: h === highlightHour,
+  }))
+}
+
+function dowLabels(dowHistogram: number[], highlightDow: number) {
+  return dowHistogram.map((value, d) => ({
+    label: DOW_SHORT[d],
+    value,
+    highlight: d === highlightDow,
+  }))
+}
+
+export type StoryPattern =
+  | 'ribbons'
+  | 'dots'
+  | 'stripes'
+  | 'circles'
+  | 'rays'
+  | 'grid'
+  | 'waves'
+  | 'arcs'
+  | 'halftone'
+  | 'zigzag'
+  | 'blocks'
+  | 'none'
 
 export interface StorySlide {
   id: string
   gradient: string
+  pattern: StoryPattern
   render: () => ReactNode
 }
 
@@ -27,13 +69,18 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
   const voiceKing = you.voiceCount >= them.voiceCount ? you : them
   const longestMsg = you.longestMessageWords >= them.longestMessageWords ? you : them
 
+  const hours = hourLabels(stats.hourHistogram, stats.primeHour)
+  const days = dowLabels(stats.dowHistogram, stats.primeDayOfWeek)
+
   return [
     {
       id: 'intro',
       gradient: 'var(--grad-intro)',
+      pattern: 'blocks',
       render: () => (
         <StatCard
           mood="celebrate"
+          layout="hero"
           eyebrow="Telegram Wrapped"
           headline={
             <>
@@ -53,60 +100,40 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
     {
       id: 'volume',
       gradient: 'var(--grad-volume)',
+      pattern: 'circles',
       render: () => (
         <StatCard
           mood="idle"
+          layout="chart"
           eyebrow="Who talks more?"
           headline={
-            <span className="stat-card__mega">
+            <span className="stat-card__line">
               {you.messageCount >= them.messageCount ? you.name : them.name}
             </span>
           }
           sub={
-            <>
-              {formatNumber(you.messageCount)} from you · {formatNumber(them.messageCount)} from{' '}
-              {them.name}.{' '}
-              {you.messageCount >= them.messageCount
-                ? 'You clearly had a lot to say.'
-                : `${them.name} took the mic — respectfully.`}
-            </>
+            you.messageCount >= them.messageCount
+              ? 'You clearly had a lot to say.'
+              : `${them.name} took the mic — respectfully.`
           }
         >
-          <div className="bar-compare">
-            <div className="bar-compare__row">
-              <span>You</span>
-              <div className="bar-compare__track">
-                <div
-                  className="bar-compare__fill bar-compare__fill--you"
-                  style={{
-                    width: `${(you.messageCount / Math.max(you.messageCount, them.messageCount, 1)) * 100}%`,
-                  }}
-                />
-              </div>
-              <span>{formatNumber(you.messageCount)}</span>
-            </div>
-            <div className="bar-compare__row">
-              <span>Them</span>
-              <div className="bar-compare__track">
-                <div
-                  className="bar-compare__fill bar-compare__fill--them"
-                  style={{
-                    width: `${(them.messageCount / Math.max(you.messageCount, them.messageCount, 1)) * 100}%`,
-                  }}
-                />
-              </div>
-              <span>{formatNumber(them.messageCount)}</span>
-            </div>
-          </div>
+          <SplitDonut
+            a={you.messageCount}
+            b={them.messageCount}
+            aLabel={`You · ${formatNumber(you.messageCount)}`}
+            bLabel={`${them.name} · ${formatNumber(them.messageCount)}`}
+          />
         </StatCard>
       ),
     },
     {
       id: 'reply-speed',
       gradient: 'var(--grad-speed)',
+      pattern: 'rays',
       render: () => (
         <StatCard
           mood="race"
+          layout="chart"
           eyebrow="Reply speed"
           headline={
             <>
@@ -120,20 +147,22 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           }
           sub={
             youFaster
-              ? 'Your paper plane left the hangar first. Fastest replier badge unlocked.'
+              ? 'Your paper plane left the hangar first.'
               : `${them.name} usually landed first. Speed isn't everything… usually.`
           }
         >
-          <RacingPlanes youFaster={youFaster} />
+          <SpeedMeters youMs={you.avgReplyMs} themMs={them.avgReplyMs} themName={them.name} />
         </StatCard>
       ),
     },
     {
       id: 'left-on-read',
       gradient: 'var(--grad-read)',
+      pattern: 'halftone',
       render: () => (
         <StatCard
           mood="think"
+          layout="hero"
           eyebrow='The epic "left on read"'
           headline={<span className="stat-card__mega">{formatDuration(stats.longestLeftOnReadMs)}</span>}
           sub={
@@ -141,42 +170,44 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
               ? `Longest wait before ${stats.longestLeftOnReadBy} replied. Worth the suspense.`
               : 'A legendary pause in the timeline.'
           }
-        />
+        >
+          <div className="viz-timeline" aria-hidden>
+            <span className="viz-timeline__dot" />
+            <span className="viz-timeline__gap" />
+            <span className="viz-timeline__dot viz-timeline__dot--end" />
+          </div>
+        </StatCard>
       ),
     },
     {
       id: 'night-owl',
       gradient: 'var(--grad-night)',
+      pattern: 'dots',
       render: () => (
         <StatCard
           mood="sleepy"
+          layout="chart"
           eyebrow="Night owl energy"
-          headline={<span className="stat-card__mega">{formatPct(you.lateNightPct)}</span>}
+          headline={<span className="stat-card__line">After midnight</span>}
           sub={
             <>
-              of <em>your</em> messages flew between 12am–4am.
-              {them.lateNightPct > 0 && (
-                <>
-                  {' '}
-                  {them.name}: {formatPct(them.lateNightPct)}. Badge goes to{' '}
-                  <strong>{stats.badges.nightOwl}</strong>.
-                </>
-              )}
+              of <em>your</em> messages flew between 12am–4am. Badge:{' '}
+              <strong>{stats.badges.nightOwl}</strong>.
             </>
           }
         >
-          <div className="moon" aria-hidden>
-            ☾
-          </div>
+          <ArcGauge value={you.lateNightPct} label={`${them.name}: ${formatPct(them.lateNightPct)}`} />
         </StatCard>
       ),
     },
     {
       id: 'streak',
       gradient: 'var(--grad-fire)',
+      pattern: 'zigzag',
       render: () => (
         <StatCard
           mood="fire"
+          layout="chart"
           eyebrow="Daily streak"
           headline={
             <>
@@ -186,54 +217,78 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           }
           sub="Without missing a single day. Streak Master energy."
         >
-          <div className="fire-row" aria-hidden>
-            <span>🔥</span>
-            <span>🔥</span>
-            <span>🔥</span>
-          </div>
+          <StreakDots count={stats.longestDailyStreak} />
         </StatCard>
       ),
     },
     {
       id: 'prime-time',
       gradient: 'var(--grad-prime)',
+      pattern: 'stripes',
       render: () => (
         <StatCard
           mood="idle"
+          layout="chart"
           eyebrow="Prime time"
           headline={
             <>
-              <span className="stat-card__mega">{stats.primeDayName}</span>
+              <span className="stat-card__line">{stats.primeDayName}</span>
               <span className="stat-card__mega-label">around {formatHour(stats.primeHour)}</span>
             </>
           }
           sub="That's when this chat hits peak altitude."
-        />
+        >
+          <VerticalBars items={hours} className="chart-vbars--hours" />
+          <p className="chart-caption">Messages by hour · peak highlighted</p>
+          <div className="week-strip" aria-label="Messages by weekday">
+            {days.map((d, i) => {
+              const max = Math.max(...days.map((x) => x.value), 1)
+              return (
+                <div
+                  key={`dow-${i}`}
+                  className={`week-strip__day${d.highlight ? ' week-strip__day--hot' : ''}`}
+                >
+                  <div
+                    className="week-strip__fill"
+                    style={{ height: `${(d.value / max) * 100}%` }}
+                  />
+                  <span>{d.label}</span>
+                </div>
+              )
+            })}
+          </div>
+        </StatCard>
       ),
     },
     {
       id: 'opener',
       gradient: 'var(--grad-opener)',
+      pattern: 'arcs',
       render: () => (
         <StatCard
           mood="celebrate"
+          layout="chart"
           eyebrow="Who starts the day?"
-          headline={<span className="stat-card__mega">{stats.badges.mostReliableOpener}</span>}
-          sub={
-            <>
-              Most reliable opener — {you.daysStarted} days started by you, {them.daysStarted} by{' '}
-              {them.name}.
-            </>
-          }
-        />
+          headline={<span className="stat-card__line">{stats.badges.mostReliableOpener}</span>}
+          sub="Most reliable opener — first message of the day."
+        >
+          <HorizontalRankBars
+            items={[
+              { label: 'You', value: you.daysStarted, display: String(you.daysStarted) },
+              { label: them.name, value: them.daysStarted, display: String(them.daysStarted) },
+            ]}
+          />
+        </StatCard>
       ),
     },
     {
       id: 'double-text',
       gradient: 'var(--grad-double)',
+      pattern: 'grid',
       render: () => (
         <StatCard
           mood="cheeky"
+          layout="chart"
           eyebrow="Double-texter diaries"
           headline={
             <>
@@ -245,26 +300,42 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
             <>
               {doubleTexter.name}'s longest no-reply streak.
               {doubleTexter.timesDoubleTexted > 0 && (
-                <>
-                  {' '}
-                  They double+ texted {formatNumber(doubleTexter.timesDoubleTexted)} times. Commitment.
-                </>
+                <> They double+ texted {formatNumber(doubleTexter.timesDoubleTexted)} times.</>
               )}
             </>
           }
-        />
+        >
+          <HorizontalRankBars
+            items={[
+              {
+                label: 'You',
+                value: you.maxConsecutiveWithoutReply,
+                display: String(you.maxConsecutiveWithoutReply),
+              },
+              {
+                label: them.name,
+                value: them.maxConsecutiveWithoutReply,
+                display: String(them.maxConsecutiveWithoutReply),
+              },
+            ]}
+          />
+        </StatCard>
       ),
     },
     {
       id: 'one-sided',
       gradient: 'var(--grad-onesided)',
+      pattern: 'stripes',
       render: () => {
         const d = stats.mostOneSidedDay
         const leader =
           d?.leaderId === you.id ? you.name : d?.leaderId === them.id ? them.name : 'someone'
+        const youN = d ? (d.counts[you.id] ?? 0) : 0
+        const themN = d ? (d.counts[them.id] ?? 0) : 0
         return (
           <StatCard
             mood="cheeky"
+            layout="chart"
             eyebrow="Most one-sided day"
             headline={<span className="stat-card__mega">{d ? formatNumber(d.imbalance) : '0'}</span>}
             sub={
@@ -272,16 +343,27 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
                 ? `Message gap on ${d.dateKey}. ${leader} carried the chat that day.`
                 : 'Surprisingly balanced. Weirdly wholesome.'
             }
-          />
+          >
+            {d ? (
+              <HorizontalRankBars
+                items={[
+                  { label: 'You', value: youN, display: formatNumber(youN) },
+                  { label: them.name, value: themN, display: formatNumber(themN) },
+                ]}
+              />
+            ) : null}
+          </StatCard>
         )
       },
     },
     {
       id: 'voice',
       gradient: 'var(--grad-voice)',
+      pattern: 'waves',
       render: () => (
         <StatCard
           mood="idle"
+          layout="chart"
           eyebrow="Voice notes"
           headline={
             <>
@@ -293,42 +375,48 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
             <>
               Longest: {formatVoice(Math.max(you.longestVoiceSec, them.longestVoiceSec))}
               {voiceKing.voiceCount > 0 && (
-                <>
-                  {' '}
-                  · {voiceKing.name} sent the most ({formatNumber(voiceKing.voiceCount)}).
-                </>
+                <> · {voiceKing.name} sent the most ({formatNumber(voiceKing.voiceCount)}).</>
               )}
             </>
           }
-        />
+        >
+          <Waveform />
+          <HorizontalRankBars
+            items={[
+              { label: 'You', value: you.voiceCount, display: formatNumber(you.voiceCount) },
+              { label: them.name, value: them.voiceCount, display: formatNumber(them.voiceCount) },
+            ]}
+          />
+        </StatCard>
       ),
     },
     {
       id: 'media',
       gradient: 'var(--grad-media)',
+      pattern: 'blocks',
       render: () => (
         <StatCard
           mood="emoji"
+          layout="chart"
           eyebrow="Photos & videos"
           headline={<span className="stat-card__mega">{formatNumber(mediaKing.mediaCount)}</span>}
-          sub={
-            <>
-              {mediaKing.name} shared the most media
-              {mediaKing.photoCount || mediaKing.videoCount
-                ? ` (${formatNumber(mediaKing.photoCount)} photos · ${formatNumber(mediaKing.videoCount)} videos)`
-                : ''}
-              .
-            </>
-          }
-        />
+          sub={<>{mediaKing.name} shared the most media.</>}
+        >
+          <MediaStack
+            photos={you.photoCount + them.photoCount}
+            videos={you.videoCount + them.videoCount}
+          />
+        </StatCard>
       ),
     },
     {
       id: 'essay',
       gradient: 'var(--grad-essay)',
+      pattern: 'ribbons',
       render: () => (
         <StatCard
           mood="scroll"
+          layout="chart"
           eyebrow="The essay writer"
           headline={
             <>
@@ -338,52 +426,71 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           }
           sub={
             <>
-              {longestMsg.name}'s magnum opus. Avg words/msg: you {you.avgWordsPerMessage.toFixed(1)} ·{' '}
-              {them.name} {them.avgWordsPerMessage.toFixed(1)}. Badge:{' '}
-              <strong>{stats.badges.essayWriter}</strong>.
+              {longestMsg.name}'s magnum opus. Badge: <strong>{stats.badges.essayWriter}</strong>.
             </>
           }
         >
-          <div className="scroll-icon" aria-hidden>
-            📜
-          </div>
+          <HorizontalRankBars
+            items={[
+              {
+                label: 'You avg',
+                value: you.avgWordsPerMessage,
+                display: you.avgWordsPerMessage.toFixed(1),
+              },
+              {
+                label: `${them.name} avg`,
+                value: them.avgWordsPerMessage,
+                display: them.avgWordsPerMessage.toFixed(1),
+              },
+            ]}
+          />
         </StatCard>
       ),
     },
     {
       id: 'chaos',
       gradient: 'var(--grad-chaos)',
+      pattern: 'zigzag',
       render: () => (
         <StatCard
           mood="cheeky"
+          layout="chart"
           eyebrow="Chaos metadata"
           headline={<span className="stat-card__line">Spicy punctuation</span>}
           sub="Still content-blind. Just vibes and punctuation."
         >
-          <ul className="chaos-list">
-            <li>
-              <span>!</span> {bangKing.name} — {formatNumber(bangKing.exclamationCount)} bangs
-            </li>
-            <li>
-              <span>AA</span> {capsKing.name} — {formatNumber(capsKing.allCapsCount)} all-caps
-            </li>
-            <li>
-              <span>✎</span> {editKing.name} — {formatNumber(editKing.editedCount)} edits
-            </li>
-          </ul>
+          <HorizontalRankBars
+            items={[
+              {
+                label: `! · ${bangKing.name}`,
+                value: bangKing.exclamationCount,
+                display: formatNumber(bangKing.exclamationCount),
+              },
+              {
+                label: `CAPS · ${capsKing.name}`,
+                value: capsKing.allCapsCount,
+                display: formatNumber(capsKing.allCapsCount),
+              },
+              {
+                label: `Edits · ${editKing.name}`,
+                value: editKing.editedCount,
+                display: formatNumber(editKing.editedCount),
+              },
+            ]}
+          />
         </StatCard>
       ),
     },
     {
       id: 'emoji',
       gradient: 'var(--grad-emoji)',
+      pattern: 'dots',
       render: () => (
         <StatCard
           mood="emoji"
+          layout="hero"
           eyebrow="Emoji royalty"
-          headline={
-            <span className="stat-card__mega emoji-hero">{stats.topEmoji ?? '✈️'}</span>
-          }
+          headline={<span className="stat-card__mega emoji-hero">{stats.topEmoji ?? '✈️'}</span>}
           sub={
             stats.topEmoji
               ? `Used ${formatNumber(stats.topEmojiCount)} times. ${
@@ -397,20 +504,34 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
     {
       id: 'comeback',
       gradient: 'var(--grad-comeback)',
+      pattern: 'halftone',
       render: () => (
         <StatCard
           mood="think"
+          layout="hero"
           eyebrow="The comeback"
           headline={<span className="stat-card__mega">{formatDuration(stats.comebackGapMs)}</span>}
           sub="Biggest gap before the chat picked back up. Absence makes the paper plane fly farther."
-        />
+        >
+          <div className="viz-timeline viz-timeline--long" aria-hidden>
+            <span className="viz-timeline__dot" />
+            <span className="viz-timeline__gap" />
+            <span className="viz-timeline__dot viz-timeline__dot--end" />
+          </div>
+        </StatCard>
       ),
     },
     {
       id: 'badges',
       gradient: 'var(--grad-badges)',
+      pattern: 'circles',
       render: () => (
-        <StatCard mood="celebrate" eyebrow="Superlative cards" headline={<span className="stat-card__line">Your badges</span>}>
+        <StatCard
+          mood="celebrate"
+          layout="chart"
+          eyebrow="Superlative cards"
+          headline={<span className="stat-card__line">Your badges</span>}
+        >
           <ul className="badge-grid">
             <li>
               <strong>Fastest replier</strong>
@@ -439,6 +560,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
     {
       id: 'summary',
       gradient: 'var(--grad-summary)',
+      pattern: 'none',
       render: () => <SummaryGrid stats={stats} />,
     },
   ]
@@ -489,7 +611,9 @@ function SummaryGrid({ stats }: { stats: WrappedStats }) {
         <header className="summary-grid__header">
           <p>Telegram Wrapped</p>
           <h2>{stats.chatName}</h2>
-          <span>{stats.year ?? 'All time'} · {formatNumber(stats.totalMessages)} messages</span>
+          <span>
+            {stats.year ?? 'All time'} · {formatNumber(stats.totalMessages)} messages
+          </span>
         </header>
         <div className="summary-grid__cells">
           {cells.map((c) => (

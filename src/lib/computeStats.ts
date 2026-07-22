@@ -361,6 +361,8 @@ export function computeWrappedStats(
     primeHour,
     primeDayOfWeek: primeDow,
     primeDayName: DAY_NAMES[primeDow],
+    hourHistogram: hourCounts,
+    dowHistogram: dowCounts,
     mostOneSidedDay: mostOneSided,
     topEmoji,
     topEmojiCount,

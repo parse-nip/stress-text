@@ -31,6 +31,11 @@ assert(stats.badges.fastestReplier.length > 0, 'fastest badge')
 assert(stats.you.editedCount > 0, 'edited messages in demo')
 assert(stats.you.voiceCount + stats.them.voiceCount > 0, 'voice messages')
 assert((stats.you.mediaCount + stats.them.mediaCount) > 0, 'media shared')
+assert(stats.hourHistogram.length === 24, 'hour histogram length')
+assert(stats.dowHistogram.length === 7, 'dow histogram length')
+assert(stats.hourHistogram.reduce((a, b) => a + b, 0) === stats.totalMessages, 'hour hist sums to total')
+assert(stats.dowHistogram.reduce((a, b) => a + b, 0) === stats.totalMessages, 'dow hist sums to total')
+assert(stats.hourHistogram[stats.primeHour] === Math.max(...stats.hourHistogram), 'prime hour is max')
 
 console.log('✓ computeStats tests passed')
 console.log(
@@ -42,6 +47,8 @@ console.log(
       topEmoji: stats.topEmoji,
       badges: stats.badges,
       comebackDays: Math.round(stats.comebackGapMs / 86_400_000),
+      primeHour: stats.primeHour,
+      primeDay: stats.primeDayName,
     },
     null,
     2,

@@ -118,6 +118,10 @@ export interface WrappedStats {
   primeHour: number
   primeDayOfWeek: number
   primeDayName: string
+  /** Messages per hour of day (0–23) — for prime-time charts */
+  hourHistogram: number[]
+  /** Messages per weekday (0=Sun … 6=Sat) */
+  dowHistogram: number[]
   mostOneSidedDay: DayActivity | null
   topEmoji: string | null
   topEmojiCount: number

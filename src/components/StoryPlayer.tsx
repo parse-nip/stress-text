@@ -79,7 +79,7 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
 
   return (
     <div
-      className="story"
+      className={`story story--pattern-${slide.pattern}`}
       style={{ background: slide.gradient }}
       onPointerLeave={() => setPaused(false)}
       role="presentation"
