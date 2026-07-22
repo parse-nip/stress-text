@@ -49,3 +49,11 @@ Requires `CLOUDFLARE_API_TOKEN` (Workers + DNS edit for `popped.dev`) and usuall
 
 GitHub Actions (`.github/workflows/deploy.yml`) deploys on push to `main` once those secrets are set on the repo.
 
+## Privacy
+
+Your export stays on-device. No accounts, no backend, no analytics pipeline.
+
+## Learning
+
+See [LEARNING.md](./LEARNING.md) for a checklist of concepts behind the stats and UI.
+
