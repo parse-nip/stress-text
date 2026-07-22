@@ -33,6 +33,7 @@ Track what you understand as we build. Check items only when you can explain the
 - [ ] Why we say **“You”** after the participant picker instead of the Telegram display name
 - [ ] Why top word/phrase is an intentional (client-only) exception to content-blindness
 - [ ] Why `flipPerspective` exists — so you can download *their* summary card to send them
+- [ ] Why Telegram JSON exports have **edit** times but **not read receipts** — so “polish vs reply” uses send→edit delay, not true read time
 
 ## 4. Broader impact
 

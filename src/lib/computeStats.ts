@@ -91,6 +91,8 @@ function emptyPerson(id: string, name: string): PersonStats {
     exclamationCount: 0,
     allCapsCount: 0,
     editedCount: 0,
+    avgEditDelayMs: null,
+    editPct: 0,
     daysStarted: 0,
     longestMessageWords: 0,
     longestMessageChars: 0,
@@ -266,6 +268,8 @@ export function computeWrappedStats(
   const laughCounts = new Array(24).fill(0) as number[]
   const dowCounts = new Array(7).fill(0) as number[]
   const dayMap = new Map<string, DayActivity>()
+  const editDelayAcc = new Map<string, { totalMs: number; count: number }>()
+  for (const id of personIds) editDelayAcc.set(id, { totalMs: 0, count: 0 })
 
   for (const m of filtered) {
     if (!peopleMap.has(m.fromId)) continue
@@ -274,7 +278,17 @@ export function computeWrappedStats(
     p.wordCount += m.wordCount
     p.exclamationCount += m.exclamationCount
     if (m.isAllCaps) p.allCapsCount += 1
-    if (m.isEdited) p.editedCount += 1
+    if (m.isEdited) {
+      p.editedCount += 1
+      if (m.editedAt) {
+        const delay = m.editedAt.getTime() - m.date.getTime()
+        if (delay >= 0) {
+          const acc = editDelayAcc.get(m.fromId)!
+          acc.totalMs += delay
+          acc.count += 1
+        }
+      }
+    }
     if (isLateNight(m.date)) p.lateNightCount += 1
     if (m.isVoice) {
       p.voiceCount += 1
@@ -312,13 +326,16 @@ export function computeWrappedStats(
     day.total += 1
   }
 
-  // Finalize per-person averages + late night %
+  // Finalize per-person averages + late night % + edit polish delay
   for (const p of peopleMap.values()) {
     p.avgWordsPerMessage = p.messageCount ? p.wordCount / p.messageCount : 0
     p.avgMessageChars = p.messageCount
       ? filtered.filter((m) => m.fromId === p.id).reduce((s, m) => s + m.charCount, 0) / p.messageCount
       : 0
     p.lateNightPct = p.messageCount ? (p.lateNightCount / p.messageCount) * 100 : 0
+    p.editPct = p.messageCount ? (p.editedCount / p.messageCount) * 100 : 0
+    const editAcc = editDelayAcc.get(p.id)
+    p.avgEditDelayMs = editAcc && editAcc.count > 0 ? editAcc.totalMs / editAcc.count : null
   }
 
   const replyStats = computeReplyStats(filtered, personIdSet)

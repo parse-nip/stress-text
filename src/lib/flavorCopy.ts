@@ -318,15 +318,59 @@ export function chaosCopy(stats: WrappedStats): string {
   const { you, them } = stats
   const bangs = Math.max(you.exclamationCount, them.exclamationCount)
   const caps = Math.max(you.allCapsCount, them.allCapsCount)
-  const edits = Math.max(you.editedCount, them.editedCount)
-  const spice = bangs + caps * 2 + edits
+  const spice = bangs + caps * 2
 
-  if (spice === 0) return 'No bangs, no caps, no edits. Zen punctuation monastery.'
+  if (spice === 0) return 'No bangs, no caps. Zen punctuation monastery.'
   if (spice < 10) return 'A light dusting of chaos. Still mostly vibes.'
   if (caps >= 10 && caps >= bangs) return 'ALL CAPS era detected. Enthusiasm undocumented.'
-  if (edits >= 15) return 'Heavy edit energy. Draft → send → oops → edit.'
   if (bangs >= 30) return 'Exclamation rain. Enthusiasm undocumented, clearly present.'
   return 'Just vibes and punctuation metadata.'
+}
+
+export function editSpiralCopy(stats: WrappedStats): string {
+  const { you, them } = stats
+  const total = you.editedCount + them.editedCount
+  if (total === 0) return 'Zero edits. First-draft energy. Bold.'
+
+  const king = you.editedCount >= them.editedCount ? you : them
+  const kingLabel = label(stats, king.name)
+  const pct = Math.round(king.editPct)
+
+  if (king.editedCount >= 40 || pct >= 25) {
+    return `${kingLabel} rewrote ${formatNumber(king.editedCount)} messages (${pct}%). Draft → send → oops → edit.`
+  }
+  if (king.editedCount >= 10) {
+    return `${kingLabel} hit edit ${formatNumber(king.editedCount)} times. Soft perfectionism.`
+  }
+  return `${formatNumber(total)} edits in the chat. A little polish never hurt.`
+}
+
+/**
+ * Honest substitute for “read vs reply”: exports have no read receipts,
+ * so we compare polish time (send → edit) vs reply speed.
+ */
+export function polishVsReplyCopy(stats: WrappedStats): string {
+  const { you, them } = stats
+  const polish = you.avgEditDelayMs
+  const reply = you.avgReplyMs ?? them.avgReplyMs
+
+  if (polish == null && you.editedCount === 0 && them.editedCount === 0) {
+    return 'No edit timestamps to compare — pure send-and-forget.'
+  }
+  if (polish == null) {
+    return 'Edits happened, but timing was too fuzzy to average. Reply speed still stands.'
+  }
+  if (reply == null) {
+    return `You usually polish within ${formatDuration(polish)}. Reply times are still a mystery.`
+  }
+
+  if (polish > reply * 1.4) {
+    return `You polish for ${formatDuration(polish)} on average — longer than a typical reply (${formatDuration(reply)}). Overthink champion.`
+  }
+  if (reply > polish * 1.4) {
+    return `Quick fixes (${formatDuration(polish)}) vs slower replies (${formatDuration(reply)}). Edit finger faster than reply finger.`
+  }
+  return `Polish (${formatDuration(polish)}) and replies (${formatDuration(reply)}) run on a similar clock.`
 }
 
 export function lexCopy(stats: WrappedStats): string {

@@ -17,6 +17,7 @@ import {
   chaosCopy,
   comebackCopy,
   doubleTextCopy,
+  editSpiralCopy,
   emojiCopy,
   essayCopy,
   funniestHourCopy,
@@ -28,6 +29,7 @@ import {
   nightOwlCopy,
   oneSidedCopy,
   openerCopy,
+  polishVsReplyCopy,
   primeTimeCopy,
   replySpeedCopy,
   streakCopy,
@@ -36,7 +38,7 @@ import {
   yearCompareCopy,
 } from '../lib/flavorCopy'
 import { StatCard } from './StatCard'
-import { LaughCascade, StarField } from './CardMotifs'
+import { LaughCascade, RewriteSpiral, StarField } from './CardMotifs'
 import {
   ArcGauge,
   HorizontalRankBars,
@@ -98,7 +100,6 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
   const mediaKing = you.mediaCount >= them.mediaCount ? you : them
   const bangKing = you.exclamationCount >= them.exclamationCount ? you : them
   const capsKing = you.allCapsCount >= them.allCapsCount ? you : them
-  const editKing = you.editedCount >= them.editedCount ? you : them
   const longestMsg = you.longestMessageWords >= them.longestMessageWords ? you : them
 
   const hours = hourLabels(stats.hourHistogram, stats.primeHour)
@@ -128,6 +129,8 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
     voice: voiceCopy(stats),
     media: mediaCopy(stats),
     essay: essayCopy(stats),
+    editSpiral: editSpiralCopy(stats),
+    polishVsReply: polishVsReplyCopy(stats),
     chaos: chaosCopy(stats),
     lex: lexCopy(stats),
     emoji: emojiCopy(stats),
@@ -572,6 +575,111 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
         </StatCard>
       ),
     },
+    ...(you.editedCount + them.editedCount > 0
+      ? ([
+          {
+            id: 'edit-spiral',
+            gradient: 'var(--grad-essay)',
+            pattern: 'grid',
+            render: () => (
+              <div className="motif-wrap">
+                <RewriteSpiral />
+                <StatCard
+                  mood="scroll"
+                  layout="chart"
+                  eyebrow="Edit spiral"
+                  headline={
+                    <>
+                      <span className="stat-card__mega">
+                        {formatNumber(you.editedCount + them.editedCount)}
+                      </span>
+                      <span className="stat-card__mega-label">rewrites</span>
+                    </>
+                  }
+                  sub={copy.editSpiral}
+                >
+                  <HorizontalRankBars
+                    items={[
+                      {
+                        label: 'You',
+                        value: you.editedCount,
+                        display: formatNumber(you.editedCount),
+                      },
+                      {
+                        label: them.name,
+                        value: them.editedCount,
+                        display: formatNumber(them.editedCount),
+                      },
+                    ]}
+                  />
+                </StatCard>
+              </div>
+            ),
+          },
+        ] as StorySlide[])
+      : []),
+    ...(you.avgEditDelayMs != null || them.avgEditDelayMs != null
+      ? ([
+          {
+            id: 'polish-vs-reply',
+            gradient: 'var(--grad-read)',
+            pattern: 'halftone',
+            render: () => {
+              const polish = you.avgEditDelayMs ?? them.avgEditDelayMs
+              const reply = you.avgReplyMs ?? them.avgReplyMs
+              return (
+                <StatCard
+                  mood="think"
+                  layout="chart"
+                  eyebrow="Polish vs reply"
+                  headline={<span className="stat-card__line">Speed of second thoughts</span>}
+                  sub={copy.polishVsReply}
+                >
+                  <HorizontalRankBars
+                    items={[
+                      {
+                        label: 'Your polish',
+                        value: polish ?? 0,
+                        display: polish != null ? formatDuration(polish) : '—',
+                      },
+                      {
+                        label: 'Your reply',
+                        value: you.avgReplyMs ?? 0,
+                        display:
+                          you.avgReplyMs != null ? formatDuration(you.avgReplyMs) : '—',
+                      },
+                      ...(them.avgEditDelayMs != null
+                        ? [
+                            {
+                              label: `${them.name} polish`,
+                              value: them.avgEditDelayMs,
+                              display: formatDuration(them.avgEditDelayMs),
+                            },
+                          ]
+                        : []),
+                      ...(reply != null && you.avgReplyMs == null
+                        ? [
+                            {
+                              label: `${them.name} reply`,
+                              value: them.avgReplyMs ?? 0,
+                              display:
+                                them.avgReplyMs != null
+                                  ? formatDuration(them.avgReplyMs)
+                                  : '—',
+                            },
+                          ]
+                        : []),
+                    ]}
+                  />
+                  <p className="chart-caption">
+                    Exports have no read receipts — polish = send → edit delay
+                  </p>
+                </StatCard>
+              )
+            },
+          },
+        ] as StorySlide[])
+      : []),
     {
       id: 'chaos',
       gradient: 'var(--grad-chaos)',
@@ -595,11 +703,6 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
                 label: `CAPS · ${asYou(capsKing.name)}`,
                 value: capsKing.allCapsCount,
                 display: formatNumber(capsKing.allCapsCount),
-              },
-              {
-                label: `Edits · ${asYou(editKing.name)}`,
-                value: editKing.editedCount,
-                display: formatNumber(editKing.editedCount),
               },
             ]}
           />

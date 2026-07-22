@@ -57,6 +57,8 @@ export interface ParsedMessage {
   isSticker: boolean
   stickerEmoji: string | null
   isEdited: boolean
+  /** When the message was last edited (export only keeps final edit time) */
+  editedAt: Date | null
   exclamationCount: number
   isAllCaps: boolean
   emojis: string[]
@@ -80,6 +82,10 @@ export interface PersonStats {
   exclamationCount: number
   allCapsCount: number
   editedCount: number
+  /** Average delay from send → last edit (ms), when editable timestamps exist */
+  avgEditDelayMs: number | null
+  /** Share of their messages that were later edited */
+  editPct: number
   daysStarted: number
   longestMessageWords: number
   longestMessageChars: number

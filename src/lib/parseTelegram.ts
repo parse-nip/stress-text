@@ -41,6 +41,18 @@ function parseDate(msg: TelegramRawMessage): Date {
   return new Date(msg.date)
 }
 
+function parseEditedAt(msg: TelegramRawMessage): Date | null {
+  if (msg.edited_unixtime) {
+    const ms = Number(msg.edited_unixtime) * 1000
+    if (!Number.isNaN(ms)) return new Date(ms)
+  }
+  if (msg.edited) {
+    const d = new Date(msg.edited)
+    if (!Number.isNaN(d.getTime())) return d
+  }
+  return null
+}
+
 export function parseMessage(raw: TelegramRawMessage): ParsedMessage | null {
   if (raw.type !== 'message') return null
   const from = raw.from ?? raw.actor
@@ -62,6 +74,7 @@ export function parseMessage(raw: TelegramRawMessage): ParsedMessage | null {
     ...extractEmojis(text),
     ...(stickerEmoji ? [stickerEmoji] : []),
   ]
+  const editedAt = parseEditedAt(raw)
 
   return {
     id: raw.id,
@@ -77,7 +90,8 @@ export function parseMessage(raw: TelegramRawMessage): ParsedMessage | null {
     isVideo,
     isSticker,
     stickerEmoji,
-    isEdited: Boolean(raw.edited || raw.edited_unixtime),
+    isEdited: Boolean(editedAt),
+    editedAt,
     exclamationCount: (text.match(/!/g) ?? []).length,
     isAllCaps: isAllCaps(text),
     emojis,

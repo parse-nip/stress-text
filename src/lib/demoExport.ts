@@ -79,8 +79,19 @@ export function buildDemoExport(): TelegramExport {
     aft.setHours(15, 30 + (day % 10), 0, 0)
     messages.push(msg(id++, you, youId, aft, 'okay so hear me out ' + 'really '.repeat((day % 7) + 1) + 'long thought 🔥'))
     messages.push(
-      msg(id++, you, youId, new Date(aft.getTime() + 20_000), 'also this', { edited: iso(new Date(aft.getTime() + 60_000)) }),
+      msg(id++, you, youId, new Date(aft.getTime() + 20_000), 'also this', {
+        edited: iso(new Date(aft.getTime() + 60_000)),
+        edited_unixtime: unix(new Date(aft.getTime() + 60_000)),
+      }),
     )
+    if (day % 5 === 0) {
+      messages.push(
+        msg(id++, them, themId, new Date(aft.getTime() + 90_000), 'wait no', {
+          edited: iso(new Date(aft.getTime() + 4 * 60_000)),
+          edited_unixtime: unix(new Date(aft.getTime() + 4 * 60_000)),
+        }),
+      )
+    }
     messages.push(
       msg(id++, you, youId, new Date(aft.getTime() + 40_000), 'and this too lol'),
     )
