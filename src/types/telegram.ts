@@ -140,8 +140,6 @@ export interface WrappedStats {
   longestDailyStreak: number
   streakEndedOn: string | null
   primeHour: number
-  /** Messages in the peak hour bucket */
-  primeHourCount: number
   primeDayOfWeek: number
   primeDayName: string
   /** Messages per hour of day (0–23) — for prime-time charts */

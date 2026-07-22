@@ -1,24 +1,4 @@
-/** Decorative per-card motion motifs — unique vibes, no icon libraries. */
-
-export function PulseRings() {
-  return (
-    <div className="motif motif--rings" aria-hidden>
-      <span />
-      <span />
-      <span />
-    </div>
-  )
-}
-
-export function SpeedDashes() {
-  return (
-    <div className="motif motif--dashes" aria-hidden>
-      {Array.from({ length: 8 }, (_, i) => (
-        <i key={i} style={{ animationDelay: `${i * 0.08}s` }} />
-      ))}
-    </div>
-  )
-}
+/** Decorative motion motifs kept for night-owl + funniest-hour cards. */
 
 export function StarField() {
   return (
@@ -35,41 +15,6 @@ export function StarField() {
           }}
         />
       ))}
-    </div>
-  )
-}
-
-export function FlameStrip() {
-  return (
-    <div className="motif motif--flames" aria-hidden>
-      {Array.from({ length: 7 }, (_, i) => (
-        <i key={i} style={{ animationDelay: `${i * 0.12}s` }} />
-      ))}
-    </div>
-  )
-}
-
-/** Analog-ish clock with hand aimed at the peak hour. */
-export function PeakHourClock({ hour }: { hour: number }) {
-  // Map 0–23 onto a 12-hour face (0 and 12 share the top)
-  const faceHour = hour % 12
-  const deg = faceHour * 30 // 360/12
-  return (
-    <div className="peak-clock" aria-hidden>
-      <div className="peak-clock__face">
-        {Array.from({ length: 12 }, (_, i) => (
-          <span
-            key={i}
-            className={`peak-clock__tick${i === faceHour ? ' peak-clock__tick--hot' : ''}`}
-            style={{ transform: `rotate(${i * 30}deg) translateY(-42%)` }}
-          />
-        ))}
-        <div className="peak-clock__hand-wrap" style={{ transform: `rotate(${deg}deg)` }}>
-          <div className="peak-clock__hand" />
-        </div>
-        <div className="peak-clock__hub" />
-      </div>
-      <p className="peak-clock__ampm">{hour < 12 ? 'AM' : 'PM'}</p>
     </div>
   )
 }
@@ -93,16 +38,6 @@ export function LaughCascade({ samples }: { samples?: string[] }) {
           {words[i % words.length]}
         </span>
       ))}
-    </div>
-  )
-}
-
-export function GapPulse() {
-  return (
-    <div className="motif motif--gap" aria-hidden>
-      <span className="motif-gap__a" />
-      <span className="motif-gap__line" />
-      <span className="motif-gap__b" />
     </div>
   )
 }

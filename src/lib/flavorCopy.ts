@@ -184,23 +184,14 @@ export function streakCopy(stats: WrappedStats): string {
 }
 
 export function primeTimeCopy(stats: WrappedStats): string {
-  const day = stats.primeDayName
-  const total = stats.dowHistogram[stats.primeDayOfWeek] ?? 0
-  if (total <= 0) return `${day} edges it — barely.`
-  return `${day} is the loudest weekday with ${formatNumber(total)} messages. Ritual day.`
-}
-
-export function peakHourCopy(stats: WrappedStats): string {
   const h = stats.primeHour
-  const n = stats.primeHourCount
-  if (n <= 0) return 'No clear peak hour — evenly sprinkled chaos.'
-  if (h >= 0 && h < 5) {
-    return `${formatNumber(n)} messages around ${formatHour(h)}. Peak goblin hours.`
-  }
-  if (h >= 22 || h < 6) {
-    return `${formatNumber(n)} messages clustered around ${formatHour(h)}. Night shift unlocked.`
-  }
-  return `${formatNumber(n)} messages landed around ${formatHour(h)}. Your chat's rush hour.`
+  const day = stats.primeDayName
+  if (h >= 0 && h < 5) return `${day} around ${formatHour(h)} — peak chaos o'clock.`
+  if (h >= 5 && h < 9) return `${day} mornings. Coffee-powered altitude.`
+  if (h >= 9 && h < 12) return `${day} late mornings. Productive chatter window.`
+  if (h >= 12 && h < 17) return `${day} afternoons — that's when this chat hits peak altitude.`
+  if (h >= 17 && h < 21) return `${day} evenings. Prime hangout hours.`
+  return `${day} nights. Peak altitude after dark.`
 }
 
 export function funniestHourCopy(stats: WrappedStats): string {

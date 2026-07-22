@@ -441,7 +441,6 @@ export function computeWrappedStats(
     longestDailyStreak: daily.longest,
     streakEndedOn: daily.endedOn,
     primeHour,
-    primeHourCount: hourCounts[primeHour] ?? 0,
     primeDayOfWeek: primeDow,
     primeDayName: DAY_NAMES[primeDow],
     hourHistogram: hourCounts,
