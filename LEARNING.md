@@ -20,13 +20,25 @@ Track what you understand as we build. Check items only when you can explain the
 - [ ] **Double-text streak**: consecutive messages from the same person with no intervening reply
 - [ ] **One-sided day**: max `|your count − their count|` on a single date
 - [ ] Story UI: auto-advance + Instagram-style progress dots + tap zones
+- [ ] How to keep autoplay *and* avoid rush: longer beats on dense cards + **hold pauses without skipping** (tap = skip, hold = linger)
+- [ ] Why sticky pause (button) is separate from press-and-hold pause (temporary)
+- [ ] Why vertical bar grow animations need `transform-origin: bottom` (default center makes bars “inflate” weirdly)
+- [ ] Why SVG gauge draws need `stroke-dashoffset` from path length → remaining (a hardcoded offset makes the round linecap “dot” jump sides)
 
 ## 3. Design decisions
 
-- [ ] Why Spotify Wrapped *structure* (one big stat per card) without copying Spotify’s green
-- [ ] Why Telegram blue → purple/pink gradient reads as “Wrapped + Telegram”
+- [ ] Why Spotify Wrapped *structure* (one big idea per card) without copying Spotify’s green
+- [ ] Why flat bold per-card colors beat soft rainbow gradients for “real Wrapped” energy
+- [ ] Why each slide gets its **own background pattern** (dots / stripes / rays / waves…) — variety without clutter
+- [ ] Why some cards are **chart-forward** (donut, hour bars, gauge, waveform) instead of only a mega number
 - [ ] Why a paper-plane mascot recurs on every card (brand motif / reaction)
 - [ ] Why copy is cheeky but not judgmental
+- [ ] Why **flavor copy** branches on thresholds (e.g. 3× message lead → “Wow, you had a lot to say”) instead of one fixed caption per card
+- [ ] Why we say **“You”** after the participant picker instead of the Telegram display name
+- [ ] Why top word/phrase is an intentional (client-only) exception to content-blindness
+- [ ] Why `flipPerspective` exists — so you can download *their* summary card to send them
+- [ ] Why Telegram JSON exports have **edit** times but **not read receipts** — so “polish vs reply” uses send→edit delay, not true read time
+- [ ] Why busy pattern overlays can hurt a chart-heavy card (volume → `pattern: none` so the donut isn’t fighting concentric rings)
 
 ## 4. Broader impact
 
@@ -34,6 +46,7 @@ Track what you understand as we build. Check items only when you can explain the
 - [ ] What timezone assumptions we make (browser local time)
 - [ ] What “edited” and voice duration depend on in the export
 - [ ] How the shareable summary PNG is generated (`html-to-image`)
+- [ ] How hour/dow histograms unlock chart cards without uploading more data
 
 ## Quiz bank (answer before peeking at code)
 
@@ -41,7 +54,11 @@ Track what you understand as we build. Check items only when you can explain the
 2. Is the longest “left on read” the same number as “the comeback”? When would they differ?
 3. Why might late-night % disagree with how “night owl” you *feel*?
 4. What’s one reason we ask “who are you?” instead of guessing from the export filename?
+5. Why does `hourHistogram` sum to `totalMessages`? What would break a chart if it didn’t?
+6. Name two story background patterns and which card type they suit (e.g. waves → voice).
+7. On the reply-speed card, why is a *shorter* average reply time drawn as a *longer* speed bar?
+8. If you sent 900 messages and they sent 100, which volume caption should fire — and why not the “neck and neck” line?
 
 ---
 
-**Session goal:** you can restate the problem, walk the reply-time algorithm, and explain one design choice without looking at the checklist labels.
+**Session goal:** you can restate the problem, walk the reply-time algorithm, explain one design choice (charts vs mega-number), and say why varied patterns matter — without looking at the checklist labels.

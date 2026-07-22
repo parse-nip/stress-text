@@ -57,6 +57,8 @@ export interface ParsedMessage {
   isSticker: boolean
   stickerEmoji: string | null
   isEdited: boolean
+  /** When the message was last edited (export only keeps final edit time) */
+  editedAt: Date | null
   exclamationCount: number
   isAllCaps: boolean
   emojis: string[]
@@ -80,6 +82,10 @@ export interface PersonStats {
   exclamationCount: number
   allCapsCount: number
   editedCount: number
+  /** Average delay from send → last edit (ms), when editable timestamps exist */
+  avgEditDelayMs: number | null
+  /** Share of their messages that were later edited */
+  editPct: number
   daysStarted: number
   longestMessageWords: number
   longestMessageChars: number
@@ -98,11 +104,35 @@ export interface DayActivity {
   leaderId: string | null
 }
 
+export interface MonthBucket {
+  /** YYYY-MM */
+  key: string
+  /** Short axis label */
+  label: string
+  count: number
+}
+
+export interface YearCompare {
+  recentYear: number
+  priorYear: number
+  recentCount: number
+  priorCount: number
+}
+
+export interface TopLexemeStat {
+  value: string
+  count: number
+  leader: string | null
+  kind: 'word' | 'phrase'
+}
+
 export interface WrappedStats {
   chatName: string
   year: number | null
   totalMessages: number
   dateRange: { start: Date; end: Date }
+  /** Age of the filtered chat window (last − first message) */
+  chatAgeMs: number
   you: PersonStats
   them: PersonStats
   people: PersonStats[]
@@ -118,10 +148,27 @@ export interface WrappedStats {
   primeHour: number
   primeDayOfWeek: number
   primeDayName: string
+  /** Messages per hour of day (0–23) — for prime-time charts */
+  hourHistogram: number[]
+  /** Laugh tokens (haha/lol/…) per hour of day */
+  laughHistogram: number[]
+  /** Hour (0–23) with the most laugh tokens; -1 if none */
+  funniestHour: number
+  funniestHourLaughs: number
+  /** Messages per weekday (0=Sun … 6=Sat) */
+  dowHistogram: number[]
+  /** Contiguous month buckets across the filtered range */
+  monthHistogram: MonthBucket[]
+  /** Present when the filtered export spans 2+ calendar years (all-time view) */
+  yearCompare: YearCompare | null
   mostOneSidedDay: DayActivity | null
   topEmoji: string | null
   topEmojiCount: number
   topEmojiLeader: string | null
+  /** Most common non-stop word (client-only lexical peek) */
+  topWord: TopLexemeStat | null
+  /** Most common 2-word phrase */
+  topPhrase: TopLexemeStat | null
   badges: {
     fastestReplier: string
     nightOwl: string

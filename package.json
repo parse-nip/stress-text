@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "tsx src/lib/computeStats.test.ts",
+    "test": "tsx src/lib/computeStats.test.ts && tsx src/lib/flavorCopy.test.ts && tsx src/lib/laughs.test.ts",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {

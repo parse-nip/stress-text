@@ -1,5 +1,14 @@
-import type { DayActivity, ParsedMessage, PersonStats, WrappedStats } from '../types/telegram'
+import type {
+  DayActivity,
+  MonthBucket,
+  ParsedMessage,
+  PersonStats,
+  WrappedStats,
+  YearCompare,
+} from '../types/telegram'
 import { detectParticipants } from './parseTelegram'
+import { computeTopLexemes } from './topWords'
+import { countLaughs } from './laughs'
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -8,6 +17,59 @@ function dateKey(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
+}
+
+function monthKey(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  return `${y}-${m}`
+}
+
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+function buildMonthHistogram(messages: ParsedMessage[]): MonthBucket[] {
+  if (messages.length === 0) return []
+  const counts = new Map<string, number>()
+  for (const m of messages) {
+    const k = monthKey(m.date)
+    counts.set(k, (counts.get(k) ?? 0) + 1)
+  }
+
+  const start = messages[0].date
+  const end = messages[messages.length - 1].date
+  const cursor = new Date(start.getFullYear(), start.getMonth(), 1)
+  const last = new Date(end.getFullYear(), end.getMonth(), 1)
+  const multiYear = start.getFullYear() !== end.getFullYear()
+  const out: MonthBucket[] = []
+
+  while (cursor <= last) {
+    const key = monthKey(cursor)
+    const label = multiYear
+      ? `${MONTH_SHORT[cursor.getMonth()]} '${String(cursor.getFullYear()).slice(2)}`
+      : MONTH_SHORT[cursor.getMonth()]
+    out.push({ key, label, count: counts.get(key) ?? 0 })
+    cursor.setMonth(cursor.getMonth() + 1)
+  }
+  return out
+}
+
+function buildYearCompare(messages: ParsedMessage[], yearFilter: number | null): YearCompare | null {
+  if (yearFilter != null) return null
+  const byYear = new Map<number, number>()
+  for (const m of messages) {
+    const y = m.date.getFullYear()
+    byYear.set(y, (byYear.get(y) ?? 0) + 1)
+  }
+  const years = [...byYear.keys()].sort((a, b) => b - a)
+  if (years.length < 2) return null
+  const recentYear = years[0]
+  const priorYear = years[1]
+  return {
+    recentYear,
+    priorYear,
+    recentCount: byYear.get(recentYear) ?? 0,
+    priorCount: byYear.get(priorYear) ?? 0,
+  }
 }
 
 function emptyPerson(id: string, name: string): PersonStats {
@@ -29,6 +91,8 @@ function emptyPerson(id: string, name: string): PersonStats {
     exclamationCount: 0,
     allCapsCount: 0,
     editedCount: 0,
+    avgEditDelayMs: null,
+    editPct: 0,
     daysStarted: 0,
     longestMessageWords: 0,
     longestMessageChars: 0,
@@ -200,9 +264,12 @@ export function computeWrappedStats(
   peopleMap.set(youMeta.id, emptyPerson(youMeta.id, youMeta.name))
   peopleMap.set(themMeta.id, emptyPerson(themMeta.id, themMeta.name))
 
-  const hourCounts = new Array(24).fill(0)
-  const dowCounts = new Array(7).fill(0)
+  const hourCounts = new Array(24).fill(0) as number[]
+  const laughCounts = new Array(24).fill(0) as number[]
+  const dowCounts = new Array(7).fill(0) as number[]
   const dayMap = new Map<string, DayActivity>()
+  const editDelayAcc = new Map<string, { totalMs: number; count: number }>()
+  for (const id of personIds) editDelayAcc.set(id, { totalMs: 0, count: 0 })
 
   for (const m of filtered) {
     if (!peopleMap.has(m.fromId)) continue
@@ -211,7 +278,17 @@ export function computeWrappedStats(
     p.wordCount += m.wordCount
     p.exclamationCount += m.exclamationCount
     if (m.isAllCaps) p.allCapsCount += 1
-    if (m.isEdited) p.editedCount += 1
+    if (m.isEdited) {
+      p.editedCount += 1
+      if (m.editedAt) {
+        const delay = m.editedAt.getTime() - m.date.getTime()
+        if (delay >= 0) {
+          const acc = editDelayAcc.get(m.fromId)!
+          acc.totalMs += delay
+          acc.count += 1
+        }
+      }
+    }
     if (isLateNight(m.date)) p.lateNightCount += 1
     if (m.isVoice) {
       p.voiceCount += 1
@@ -234,7 +311,9 @@ export function computeWrappedStats(
       p.emojiCounts[e] = (p.emojiCounts[e] ?? 0) + 1
     }
 
-    hourCounts[m.date.getHours()] += 1
+    const hour = m.date.getHours()
+    hourCounts[hour] += 1
+    laughCounts[hour] += countLaughs(m.text)
     dowCounts[m.date.getDay()] += 1
 
     const dk = dateKey(m.date)
@@ -247,13 +326,16 @@ export function computeWrappedStats(
     day.total += 1
   }
 
-  // Finalize per-person averages + late night %
+  // Finalize per-person averages + late night % + edit polish delay
   for (const p of peopleMap.values()) {
     p.avgWordsPerMessage = p.messageCount ? p.wordCount / p.messageCount : 0
     p.avgMessageChars = p.messageCount
       ? filtered.filter((m) => m.fromId === p.id).reduce((s, m) => s + m.charCount, 0) / p.messageCount
       : 0
     p.lateNightPct = p.messageCount ? (p.lateNightCount / p.messageCount) * 100 : 0
+    p.editPct = p.messageCount ? (p.editedCount / p.messageCount) * 100 : 0
+    const editAcc = editDelayAcc.get(p.id)
+    p.avgEditDelayMs = editAcc && editAcc.count > 0 ? editAcc.totalMs / editAcc.count : null
   }
 
   const replyStats = computeReplyStats(filtered, personIdSet)
@@ -319,10 +401,23 @@ export function computeWrappedStats(
     }
   }
 
+  const lex = computeTopLexemes(
+    filtered.filter((m) => personIdSet.has(m.fromId)),
+    personIdSet,
+  )
+
   let primeHour = 0
   let primeDow = 0
+  let funniestHour = -1
+  let funniestHourLaughs = 0
   for (let h = 0; h < 24; h++) if (hourCounts[h] > hourCounts[primeHour]) primeHour = h
   for (let d = 0; d < 7; d++) if (dowCounts[d] > dowCounts[primeDow]) primeDow = d
+  for (let h = 0; h < 24; h++) {
+    if (laughCounts[h] > funniestHourLaughs) {
+      funniestHourLaughs = laughCounts[h]
+      funniestHour = h
+    }
+  }
 
   const you = peopleMap.get(youMeta.id)!
   const them = peopleMap.get(themMeta.id)!
@@ -340,14 +435,18 @@ export function computeWrappedStats(
   const essayWriter = you.avgWordsPerMessage >= them.avgWordsPerMessage ? you.name : them.name
   const opener = you.daysStarted >= them.daysStarted ? you.name : them.name
 
+  const rangeStart = filtered[0].date
+  const rangeEnd = filtered[filtered.length - 1].date
+
   return {
     chatName,
     year: yearFilter,
     totalMessages: filtered.length,
     dateRange: {
-      start: filtered[0].date,
-      end: filtered[filtered.length - 1].date,
+      start: rangeStart,
+      end: rangeEnd,
     },
+    chatAgeMs: Math.max(0, rangeEnd.getTime() - rangeStart.getTime()),
     you,
     them,
     people: [you, them],
@@ -361,10 +460,19 @@ export function computeWrappedStats(
     primeHour,
     primeDayOfWeek: primeDow,
     primeDayName: DAY_NAMES[primeDow],
+    hourHistogram: hourCounts,
+    laughHistogram: laughCounts,
+    funniestHour,
+    funniestHourLaughs,
+    dowHistogram: dowCounts,
+    monthHistogram: buildMonthHistogram(filtered),
+    yearCompare: buildYearCompare(filtered, yearFilter),
     mostOneSidedDay: mostOneSided,
     topEmoji,
     topEmojiCount,
     topEmojiLeader,
+    topWord: lex.topWord,
+    topPhrase: lex.topPhrase,
     badges: {
       fastestReplier: faster,
       nightOwl,
@@ -382,5 +490,51 @@ export function finalizeBadges(stats: WrappedStats): WrappedStats {
   return {
     ...stats,
     badges: { ...stats.badges, streakMaster },
+  }
+}
+
+/** Swap you/them so the other person can get their own shareable summary card. */
+export function flipPerspective(stats: WrappedStats): WrappedStats {
+  const swapName = (name: string | null): string | null => {
+    if (name == null) return null
+    if (name === stats.you.name) return stats.them.name
+    if (name === stats.them.name) return stats.you.name
+    return name
+  }
+
+  const flippedOneSided = stats.mostOneSidedDay
+    ? {
+        ...stats.mostOneSidedDay,
+        leaderId:
+          stats.mostOneSidedDay.leaderId === stats.you.id
+            ? stats.them.id
+            : stats.mostOneSidedDay.leaderId === stats.them.id
+              ? stats.you.id
+              : stats.mostOneSidedDay.leaderId,
+      }
+    : null
+
+  return {
+    ...stats,
+    you: stats.them,
+    them: stats.you,
+    people: [stats.them, stats.you],
+    longestLeftOnReadBy: swapName(stats.longestLeftOnReadBy) ?? '',
+    topEmojiLeader: swapName(stats.topEmojiLeader),
+    topWord: stats.topWord
+      ? { ...stats.topWord, leader: swapName(stats.topWord.leader) }
+      : null,
+    topPhrase: stats.topPhrase
+      ? { ...stats.topPhrase, leader: swapName(stats.topPhrase.leader) }
+      : null,
+    mostOneSidedDay: flippedOneSided,
+    badges: {
+      fastestReplier: swapName(stats.badges.fastestReplier) ?? stats.badges.fastestReplier,
+      nightOwl: swapName(stats.badges.nightOwl) ?? stats.badges.nightOwl,
+      essayWriter: swapName(stats.badges.essayWriter) ?? stats.badges.essayWriter,
+      streakMaster: swapName(stats.badges.streakMaster) ?? stats.badges.streakMaster,
+      mostReliableOpener:
+        swapName(stats.badges.mostReliableOpener) ?? stats.badges.mostReliableOpener,
+    },
   }
 }

@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ProgressDots } from './ProgressDots'
 import type { StorySlide } from './cards'
 
-const AUTO_MS = 6500
+/** Default beat — long enough to read a caption + glance at a chart. */
+const AUTO_MS = 8500
+/** Press longer than this = pause only; shorter = tap to skip. */
+const HOLD_PAUSE_MS = 220
 
 interface StoryPlayerProps {
   slides: StorySlide[]
@@ -12,10 +15,19 @@ interface StoryPlayerProps {
 export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
   const [index, setIndex] = useState(0)
   const [progress, setProgress] = useState(0)
-  const [paused, setPaused] = useState(false)
+  /** Sticky pause from the chrome button — survives taps / pointer leave. */
+  const [pinnedPaused, setPinnedPaused] = useState(false)
+  /** Temporary pause while pressing a tap zone. */
+  const [holding, setHolding] = useState(false)
   const rafRef = useRef<number | null>(null)
   const startRef = useRef<number>(0)
   const accruedRef = useRef(0)
+  const pointerDownAt = useRef(0)
+
+  const slide = slides[index]
+  const hold = Boolean(slide?.hold)
+  const durationMs = slide?.durationMs ?? AUTO_MS
+  const paused = pinnedPaused || holding
 
   const go = useCallback(
     (next: number) => {
@@ -26,6 +38,8 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
         return
       }
       if (next >= slides.length) {
+        // Final download slide: stay put (no timer / no accidental exit via tap-right)
+        if (slides[index]?.hold) return
         onExit()
         return
       }
@@ -34,17 +48,22 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
       setProgress(0)
       startRef.current = performance.now()
     },
-    [onExit, slides.length],
+    [onExit, slides, index],
   )
 
   useEffect(() => {
+    if (hold) {
+      setProgress(1)
+      accruedRef.current = durationMs
+      return
+    }
     if (paused) return
 
     startRef.current = performance.now()
 
     const tick = (now: number) => {
       const elapsed = accruedRef.current + (now - startRef.current)
-      const p = Math.min(1, elapsed / AUTO_MS)
+      const p = Math.min(1, elapsed / durationMs)
       setProgress(p)
       if (p >= 1) {
         accruedRef.current = 0
@@ -58,45 +77,76 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       const now = performance.now()
-      accruedRef.current = Math.min(AUTO_MS, accruedRef.current + (now - startRef.current))
+      accruedRef.current = Math.min(durationMs, accruedRef.current + (now - startRef.current))
     }
-  }, [index, paused, go])
+  }, [index, paused, hold, go, durationMs])
 
   function onPointerDown() {
-    setPaused(true)
+    if (hold) return
+    pointerDownAt.current = performance.now()
+    setHolding(true)
   }
 
-  function onPointerUp(e: ReactPointerEvent) {
-    setPaused(false)
-    const x = e.clientX
-    const w = window.innerWidth
-    if (x < w * 0.33) go(index - 1)
-    else go(index + 1)
+  /** True when the user held long enough that this should not count as a tap. */
+  function wasPauseHold() {
+    return performance.now() - pointerDownAt.current >= HOLD_PAUSE_MS
   }
 
-  const slide = slides[index]
+  function onZoneUp(direction: -1 | 1) {
+    if (hold) {
+      if (direction === -1) go(index - 1)
+      return
+    }
+    setHolding(false)
+    // Hold-to-pause: resume in place. Tap: skip.
+    if (wasPauseHold()) return
+    go(index + direction)
+  }
+
   if (!slide) return null
 
   return (
     <div
-      className="story"
+      className={`story story--pattern-${slide.pattern}${hold ? ' story--hold' : ''}${
+        pinnedPaused && !hold ? ' story--paused' : ''
+      }`}
       style={{ background: slide.gradient }}
-      onPointerLeave={() => setPaused(false)}
+      onPointerLeave={() => setHolding(false)}
       role="presentation"
     >
       <div className="story__chrome">
         <ProgressDots total={slides.length} current={index} progress={progress} />
-        <button
-          type="button"
-          className="story__close"
-          onClick={(e) => {
-            e.stopPropagation()
-            onExit()
-          }}
-          aria-label="Close"
-        >
-          ×
-        </button>
+        <div className="story__chrome-actions">
+          {!hold ? (
+            <button
+              type="button"
+              className="story__pause"
+              onClick={(e) => {
+                e.stopPropagation()
+                setPinnedPaused((p) => !p)
+              }}
+              aria-label={pinnedPaused ? 'Resume autoplay' : 'Pause autoplay'}
+              aria-pressed={pinnedPaused}
+            >
+              {pinnedPaused ? (
+                <span className="story__pause-icon story__pause-icon--play" aria-hidden />
+              ) : (
+                <span className="story__pause-icon story__pause-icon--bars" aria-hidden />
+              )}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="story__close"
+            onClick={(e) => {
+              e.stopPropagation()
+              onExit()
+            }}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       <div className="story__stage" key={slide.id}>
@@ -106,22 +156,27 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
           className="story__zone story__zone--left"
           aria-label="Previous"
           onPointerDown={onPointerDown}
-          onPointerUp={() => {
-            setPaused(false)
-            go(index - 1)
-          }}
+          onPointerUp={() => onZoneUp(-1)}
         />
-        <button
-          type="button"
-          className="story__zone story__zone--right"
-          aria-label="Next"
-          onPointerDown={onPointerDown}
-          onPointerUp={(e: ReactPointerEvent) => onPointerUp(e)}
-        />
+        {!hold ? (
+          <button
+            type="button"
+            className="story__zone story__zone--right"
+            aria-label="Next"
+            onPointerDown={onPointerDown}
+            onPointerUp={() => onZoneUp(1)}
+          />
+        ) : null}
         <div className="story__body">{slide.render()}</div>
       </div>
 
-      <p className="story__hint">Tap left / right · hold to pause</p>
+      <p className="story__hint">
+        {hold
+          ? 'Download your cards · tap left to go back · × to close'
+          : pinnedPaused
+            ? 'Paused · tap to skip · play to resume'
+            : 'Tap to skip · pause or hold to linger'}
+      </p>
     </div>
   )
 }
