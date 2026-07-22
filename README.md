@@ -37,10 +37,15 @@ Nothing is uploaded. Parsing and stats run entirely in your browser.
 | `npm run preview` | Preview the production build |
 | `npx tsx src/lib/computeStats.test.ts` | Smoke-test the stats engine on demo data |
 
-## Privacy
+## Deploy (Cloudflare)
 
-Your export stays on-device. No accounts, no backend, no analytics pipeline.
+Production target: **https://wrapped.popped.dev**
 
-## Learning
+```bash
+npm run deploy
+```
 
-See [LEARNING.md](./LEARNING.md) for a checklist of concepts behind the stats and UI.
+Requires `CLOUDFLARE_API_TOKEN` (Workers + DNS edit for `popped.dev`) and usually `CLOUDFLARE_ACCOUNT_ID`. The Worker serves the Vite `dist/` assets and attaches the `wrapped.popped.dev` custom domain via `wrangler.jsonc`.
+
+GitHub Actions (`.github/workflows/deploy.yml`) deploys on push to `main` once those secrets are set on the repo.
+
