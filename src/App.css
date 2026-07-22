@@ -495,7 +495,8 @@ button {
     radial-gradient(circle at 15% 85%, rgba(255, 255, 255, 0.12), transparent 40%);
 }
 
-/* Diagonal stripes */
+/* Diagonal stripes — shared by story slides + landing */
+.landing.story--pattern-stripes::before,
 .story--pattern-stripes::before {
   background: repeating-linear-gradient(
     -28deg,
@@ -507,6 +508,7 @@ button {
   mix-blend-mode: overlay;
 }
 
+.landing.story--pattern-stripes::after,
 .story--pattern-stripes::after {
   background: linear-gradient(160deg, transparent 40%, rgba(0, 0, 0, 0.35));
 }

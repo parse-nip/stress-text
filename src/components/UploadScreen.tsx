@@ -31,7 +31,7 @@ export function UploadScreen({ onFile, onDemo, error, loading }: UploadScreenPro
   }
 
   return (
-    <div className="landing story--pattern-dots" style={{ background: 'var(--grad-intro)' }}>
+    <div className="landing story--pattern-stripes" style={{ background: 'var(--grad-intro)' }}>
       <header className="landing__brand">
         <PaperPlane mood="celebrate" size={104} className="landing__hero-plane" />
         <h1>
