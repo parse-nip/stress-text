@@ -21,6 +21,8 @@ Track what you understand as we build. Check items only when you can explain the
 - [ ] **One-sided day**: max `|your count − their count|` on a single date
 - [ ] Story UI: auto-advance + Instagram-style progress dots + tap zones
 - [ ] How to keep autoplay *and* avoid rush: longer beats on dense cards + **hold pauses without skipping** (tap = skip, hold = linger)
+- [ ] Why sticky pause (button) is separate from press-and-hold pause (temporary)
+- [ ] Why vertical bar grow animations need `transform-origin: bottom` (default center makes bars “inflate” weirdly)
 
 ## 3. Design decisions
 

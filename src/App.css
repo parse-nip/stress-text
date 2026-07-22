@@ -626,17 +626,57 @@ button {
   gap: 0.5rem;
 }
 
-.story__close {
+.story__chrome-actions {
   align-self: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.story__close,
+.story__pause {
   width: 2.25rem;
   height: 2.25rem;
   border: none;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.25);
   color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.story__close {
   font-size: 1.5rem;
   line-height: 1;
-  cursor: pointer;
+}
+
+.story__pause[aria-pressed='true'] {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.story__pause-icon {
+  display: block;
+  pointer-events: none;
+}
+
+.story__pause-icon--bars {
+  width: 0.7rem;
+  height: 0.85rem;
+  border-left: 0.22rem solid #fff;
+  border-right: 0.22rem solid #fff;
+  box-sizing: border-box;
+}
+
+.story__pause-icon--play {
+  width: 0;
+  height: 0;
+  margin-left: 0.15rem;
+  border-style: solid;
+  border-width: 0.38rem 0 0.38rem 0.62rem;
+  border-color: transparent transparent transparent #fff;
 }
 
 .story__body {
@@ -895,7 +935,8 @@ button {
   }
 
   .motif--stars i,
-  .laugh-cascade__chip {
+  .laugh-cascade__chip,
+  .chart-years__bar {
     animation: none !important;
   }
 }
@@ -1825,7 +1866,12 @@ button {
   max-width: 3.25rem;
   min-height: 8px;
   border-radius: 0.35rem 0.35rem 0 0;
-  animation: bar-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: bottom center;
+  animation: year-bar-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.chart-years__col:nth-child(2) .chart-years__bar {
+  animation-delay: 0.14s;
 }
 
 .chart-years__bar--prior {
@@ -1834,6 +1880,17 @@ button {
 
 .chart-years__bar--recent {
   background: var(--c-lime);
+}
+
+@keyframes year-bar-rise {
+  from {
+    transform: scaleY(0);
+    opacity: 0.35;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 .chart-years__year {

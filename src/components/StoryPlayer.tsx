@@ -15,7 +15,10 @@ interface StoryPlayerProps {
 export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
   const [index, setIndex] = useState(0)
   const [progress, setProgress] = useState(0)
-  const [paused, setPaused] = useState(false)
+  /** Sticky pause from the chrome button — survives taps / pointer leave. */
+  const [pinnedPaused, setPinnedPaused] = useState(false)
+  /** Temporary pause while pressing a tap zone. */
+  const [holding, setHolding] = useState(false)
   const rafRef = useRef<number | null>(null)
   const startRef = useRef<number>(0)
   const accruedRef = useRef(0)
@@ -24,6 +27,7 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
   const slide = slides[index]
   const hold = Boolean(slide?.hold)
   const durationMs = slide?.durationMs ?? AUTO_MS
+  const paused = pinnedPaused || holding
 
   const go = useCallback(
     (next: number) => {
@@ -80,7 +84,7 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
   function onPointerDown() {
     if (hold) return
     pointerDownAt.current = performance.now()
-    setPaused(true)
+    setHolding(true)
   }
 
   /** True when the user held long enough that this should not count as a tap. */
@@ -93,7 +97,7 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
       if (direction === -1) go(index - 1)
       return
     }
-    setPaused(false)
+    setHolding(false)
     // Hold-to-pause: resume in place. Tap: skip.
     if (wasPauseHold()) return
     go(index + direction)
@@ -103,24 +107,46 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
 
   return (
     <div
-      className={`story story--pattern-${slide.pattern}${hold ? ' story--hold' : ''}`}
+      className={`story story--pattern-${slide.pattern}${hold ? ' story--hold' : ''}${
+        pinnedPaused && !hold ? ' story--paused' : ''
+      }`}
       style={{ background: slide.gradient }}
-      onPointerLeave={() => setPaused(false)}
+      onPointerLeave={() => setHolding(false)}
       role="presentation"
     >
       <div className="story__chrome">
         <ProgressDots total={slides.length} current={index} progress={progress} />
-        <button
-          type="button"
-          className="story__close"
-          onClick={(e) => {
-            e.stopPropagation()
-            onExit()
-          }}
-          aria-label="Close"
-        >
-          ×
-        </button>
+        <div className="story__chrome-actions">
+          {!hold ? (
+            <button
+              type="button"
+              className="story__pause"
+              onClick={(e) => {
+                e.stopPropagation()
+                setPinnedPaused((p) => !p)
+              }}
+              aria-label={pinnedPaused ? 'Resume autoplay' : 'Pause autoplay'}
+              aria-pressed={pinnedPaused}
+            >
+              {pinnedPaused ? (
+                <span className="story__pause-icon story__pause-icon--play" aria-hidden />
+              ) : (
+                <span className="story__pause-icon story__pause-icon--bars" aria-hidden />
+              )}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="story__close"
+            onClick={(e) => {
+              e.stopPropagation()
+              onExit()
+            }}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       <div className="story__stage" key={slide.id}>
@@ -147,7 +173,9 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
       <p className="story__hint">
         {hold
           ? 'Download your cards · tap left to go back · × to close'
-          : 'Tap to skip · hold to pause'}
+          : pinnedPaused
+            ? 'Paused · tap to skip · play to resume'
+            : 'Tap to skip · pause or hold to linger'}
       </p>
     </div>
   )
