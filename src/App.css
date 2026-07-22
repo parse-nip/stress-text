@@ -79,96 +79,183 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 1.25rem 3rem;
+  padding: 2.75rem 1.25rem 3.25rem;
   position: relative;
   overflow: hidden;
-  background: var(--ink);
+  background:
+    repeating-linear-gradient(
+      -18deg,
+      transparent 0 14px,
+      rgba(255, 255, 255, 0.018) 14px 15px
+    ),
+    var(--ink);
 }
 
-/* Bold static angular shapes — corner blocks, not a soft glow */
-.landing::before,
-.landing::after {
-  content: '';
+.landing__sky {
   position: absolute;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
+  overflow: hidden;
 }
 
-.landing::before {
-  top: -8%;
-  left: -6%;
-  width: 62%;
-  height: 46%;
+.landing__shard {
+  position: absolute;
+  display: block;
+  will-change: transform;
+}
+
+.landing__shard--magenta {
+  top: -10%;
+  left: -8%;
+  width: min(72vw, 640px);
+  height: min(48vh, 420px);
   background: var(--c-magenta);
-  clip-path: polygon(0 0, 100% 0, 100% 40%, 46% 100%, 0 62%);
+  clip-path: polygon(0 0, 100% 0, 100% 38%, 48% 100%, 0 64%);
+  animation: shard-drift-a 14s ease-in-out infinite;
 }
 
-.landing::after {
-  right: -8%;
-  bottom: -8%;
-  width: 60%;
-  height: 48%;
+.landing__shard--cobalt {
+  right: -10%;
+  bottom: -12%;
+  width: min(70vw, 620px);
+  height: min(52vh, 460px);
   background: var(--c-cobalt);
-  clip-path: polygon(54% 0, 100% 34%, 100% 100%, 0 100%, 20% 46%);
+  clip-path: polygon(56% 0, 100% 30%, 100% 100%, 0 100%, 18% 44%);
+  animation: shard-drift-b 16s ease-in-out infinite;
 }
 
-.landing__glow {
-  position: absolute;
-  z-index: 0;
-  top: 30%;
-  right: 12%;
-  width: 34%;
-  height: 30%;
+.landing__shard--lime {
+  top: 28%;
+  right: 6%;
+  width: min(38vw, 280px);
+  height: min(28vh, 220px);
   background: var(--c-lime);
-  clip-path: polygon(0 22%, 74% 0, 100% 70%, 30% 100%);
-  pointer-events: none;
+  clip-path: polygon(0 18%, 78% 0, 100% 72%, 28% 100%);
+  opacity: 0.92;
+  animation: shard-drift-c 11s ease-in-out infinite;
+}
+
+.landing__shard--orange {
+  left: 4%;
+  bottom: 18%;
+  width: min(28vw, 200px);
+  height: min(22vh, 160px);
+  background: var(--c-orange);
+  clip-path: polygon(10% 0, 100% 22%, 82% 100%, 0 70%);
+  opacity: 0.85;
+  animation: shard-drift-a 18s ease-in-out infinite reverse;
+}
+
+.landing__drift {
+  position: absolute;
+  opacity: 0.28;
+  color: #fff;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
+}
+
+.landing__drift--a {
+  top: 14%;
+  right: 18%;
+  animation: plane-cruise 12s linear infinite;
+}
+
+.landing__drift--b {
+  bottom: 22%;
+  left: 10%;
+  animation: plane-cruise 16s linear infinite reverse;
+  animation-delay: -4s;
+}
+
+.landing__drift--c {
+  top: 58%;
+  right: 8%;
+  opacity: 0.2;
+  animation: plane-cruise 20s linear infinite;
+  animation-delay: -8s;
 }
 
 .landing__brand {
   position: relative;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
   z-index: 1;
+  animation: landing-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing__hero-plane {
+  margin: 0 auto;
+  color: #fff;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.45));
 }
 
 .landing__brand h1 {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(2.6rem, 9vw, 4.25rem);
-  letter-spacing: -0.05em;
+  font-size: clamp(3.1rem, 12vw, 5.6rem);
+  letter-spacing: -0.055em;
   text-transform: uppercase;
-  margin: 0.75rem 0 0.5rem;
+  margin: 0.85rem 0 0.65rem;
   color: var(--foam);
-  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.55);
+  line-height: 0.88;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.02em;
+  text-shadow: 0 8px 36px rgba(0, 0, 0, 0.55);
+}
+
+.landing__title-line {
+  display: block;
+}
+
+.landing__title-line--accent {
+  color: var(--c-lime);
+  animation: accent-pop 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
 }
 
 .landing__tagline {
-  max-width: 28rem;
+  max-width: 26rem;
   margin: 0 auto;
-  color: var(--foam-dim);
-  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(1.02rem, 2.8vw, 1.15rem);
   font-weight: 500;
   line-height: 1.45;
+  text-wrap: balance;
+  animation: landing-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.landing__actions {
+  position: relative;
+  z-index: 1;
+  width: min(440px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.9rem;
+  animation: landing-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
 }
 
 .dropzone {
   position: relative;
-  z-index: 1;
-  width: min(420px, 100%);
-  padding: 1.75rem 1.5rem;
-  border: 2.5px dashed rgba(255, 255, 255, 0.55);
-  border-radius: 0.5rem;
-  background: rgba(10, 4, 16, 0.72);
+  width: 100%;
+  padding: 1.85rem 1.5rem;
+  border: 2.5px dashed rgba(185, 255, 46, 0.55);
+  border-radius: 0.65rem;
+  background: rgba(10, 4, 16, 0.78);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
   cursor: pointer;
   text-align: center;
-  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .dropzone:hover,
 .dropzone--active {
   border-color: var(--c-lime);
-  background: rgba(10, 4, 16, 0.85);
-  transform: translateY(-2px);
+  border-style: solid;
+  background: rgba(10, 4, 16, 0.9);
+  transform: translateY(-3px);
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.42);
 }
 
 .dropzone--loading {
@@ -178,9 +265,10 @@ button {
 
 .dropzone__title {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.2rem;
-  margin: 0 0 0.5rem;
+  font-weight: 800;
+  font-size: 1.28rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.45rem;
 }
 
 .dropzone__hint {
@@ -191,29 +279,32 @@ button {
 }
 
 .landing__error {
-  position: relative;
-  z-index: 1;
   color: #fecdd3;
-  background: rgba(190, 24, 93, 0.35);
+  background: rgba(190, 24, 93, 0.4);
   padding: 0.65rem 1rem;
-  border-radius: 0.75rem;
-  margin-top: 1rem;
-  max-width: 420px;
+  border-radius: 0.5rem;
+  margin: 0;
   text-align: center;
 }
 
 .landing__howto {
   position: relative;
   z-index: 1;
-  margin-top: 1.75rem;
-  max-width: 420px;
+  margin-top: 1.5rem;
+  max-width: 440px;
   color: var(--foam-dim);
   font-size: 0.9rem;
+  animation: landing-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
 }
 
 .landing__howto summary {
   cursor: pointer;
-  color: #e9d5ff;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+}
+
+.landing__howto summary:hover {
+  color: var(--c-lime);
 }
 
 .landing__howto ol {
@@ -227,6 +318,70 @@ button {
   background: rgba(0, 0, 0, 0.25);
   padding: 0.1em 0.35em;
   border-radius: 0.25rem;
+}
+
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes accent-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shard-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(2.5%, 1.5%) rotate(1.2deg);
+  }
+}
+
+@keyframes shard-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(-2%, -1.5%) rotate(-1deg);
+  }
+}
+
+@keyframes shard-drift-c {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate(-3%, 2%) rotate(3deg);
+  }
+}
+
+@keyframes plane-cruise {
+  0% {
+    transform: translate(-10vw, 8px) rotate(-12deg);
+  }
+  50% {
+    transform: translate(8vw, -10px) rotate(8deg);
+  }
+  100% {
+    transform: translate(-10vw, 8px) rotate(-12deg);
+  }
 }
 
 /* ——— Buttons ——— */
@@ -264,8 +419,9 @@ button {
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* Landing's demo button = bold hero CTA */
-.landing > .btn--ghost {
+/* Landing demo CTA — lime punch under the dropzone */
+.landing__demo {
+  margin-top: 0;
   background: var(--c-lime);
   color: #0a0410;
   border: none;
@@ -273,12 +429,15 @@ button {
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  padding: 0.85rem 1.6rem;
+  padding: 0.9rem 1.6rem;
+  border-radius: 0.55rem;
+  box-shadow: 0 10px 28px rgba(185, 255, 46, 0.22);
 }
 
-.landing > .btn--ghost:hover {
+.landing__demo:hover {
   background: #cbff55;
   transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(185, 255, 46, 0.3);
 }
 
 .btn--choice {
@@ -938,7 +1097,14 @@ button {
   .laugh-cascade__chip,
   .chart-years__bar,
   .chart-dwell__bar,
-  .chart-gauge__fill {
+  .chart-gauge__fill,
+  .landing__shard,
+  .landing__drift,
+  .landing__brand,
+  .landing__tagline,
+  .landing__actions,
+  .landing__howto,
+  .landing__title-line--accent {
     animation: none !important;
   }
 }
