@@ -19,20 +19,6 @@ export function StarField() {
   )
 }
 
-/** Draft → strike → rewrite loop for the edit-spiral card. */
-export function RewriteSpiral() {
-  const lines = ['wait that came out wrong', 'okay try again', 'final version (for real)']
-  return (
-    <div className="rewrite-spiral" aria-hidden>
-      {lines.map((line, i) => (
-        <p key={line} className="rewrite-spiral__line" style={{ animationDelay: `${i * 0.55}s` }}>
-          <span>{line}</span>
-        </p>
-      ))}
-    </div>
-  )
-}
-
 /** Cascading laugh tokens for the funniest-hour card. */
 export function LaughCascade({ samples }: { samples?: string[] }) {
   const words = samples && samples.length > 0 ? samples : ['haha', 'lol', 'hahaha', 'lmao', 'hehe']

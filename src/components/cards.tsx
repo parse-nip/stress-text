@@ -38,7 +38,7 @@ import {
   yearCompareCopy,
 } from '../lib/flavorCopy'
 import { StatCard } from './StatCard'
-import { LaughCascade, RewriteSpiral, StarField } from './CardMotifs'
+import { LaughCascade, StarField } from './CardMotifs'
 import {
   ArcGauge,
   HorizontalRankBars,
@@ -238,7 +238,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
     {
       id: 'volume',
       gradient: 'var(--grad-volume)',
-      pattern: 'circles',
+      pattern: 'none',
       render: () => (
         <StatCard
           mood="idle"
@@ -580,40 +580,37 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           {
             id: 'edit-spiral',
             gradient: 'var(--grad-essay)',
-            pattern: 'grid',
+            pattern: 'none',
             render: () => (
-              <div className="motif-wrap">
-                <RewriteSpiral />
-                <StatCard
-                  mood="scroll"
-                  layout="chart"
-                  eyebrow="Edit spiral"
-                  headline={
-                    <>
-                      <span className="stat-card__mega">
-                        {formatNumber(you.editedCount + them.editedCount)}
-                      </span>
-                      <span className="stat-card__mega-label">rewrites</span>
-                    </>
-                  }
-                  sub={copy.editSpiral}
-                >
-                  <HorizontalRankBars
-                    items={[
-                      {
-                        label: 'You',
-                        value: you.editedCount,
-                        display: formatNumber(you.editedCount),
-                      },
-                      {
-                        label: them.name,
-                        value: them.editedCount,
-                        display: formatNumber(them.editedCount),
-                      },
-                    ]}
-                  />
-                </StatCard>
-              </div>
+              <StatCard
+                mood="scroll"
+                layout="chart"
+                eyebrow="Edit spiral"
+                headline={
+                  <>
+                    <span className="stat-card__mega">
+                      {formatNumber(you.editedCount + them.editedCount)}
+                    </span>
+                    <span className="stat-card__mega-label">rewrites</span>
+                  </>
+                }
+                sub={copy.editSpiral}
+              >
+                <HorizontalRankBars
+                  items={[
+                    {
+                      label: 'You',
+                      value: you.editedCount,
+                      display: formatNumber(you.editedCount),
+                    },
+                    {
+                      label: them.name,
+                      value: them.editedCount,
+                      display: formatNumber(them.editedCount),
+                    },
+                  ]}
+                />
+              </StatCard>
             ),
           },
         ] as StorySlide[])
