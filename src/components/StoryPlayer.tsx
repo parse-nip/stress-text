@@ -17,6 +17,9 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
   const startRef = useRef<number>(0)
   const accruedRef = useRef(0)
 
+  const slide = slides[index]
+  const hold = Boolean(slide?.hold)
+
   const go = useCallback(
     (next: number) => {
       if (next < 0) {
@@ -26,6 +29,8 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
         return
       }
       if (next >= slides.length) {
+        // Final download slide: stay put (no timer / no accidental exit via tap-right)
+        if (slides[index]?.hold) return
         onExit()
         return
       }
@@ -34,10 +39,15 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
       setProgress(0)
       startRef.current = performance.now()
     },
-    [onExit, slides.length],
+    [onExit, slides, index],
   )
 
   useEffect(() => {
+    if (hold) {
+      setProgress(1)
+      accruedRef.current = AUTO_MS
+      return
+    }
     if (paused) return
 
     startRef.current = performance.now()
@@ -60,13 +70,21 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
       const now = performance.now()
       accruedRef.current = Math.min(AUTO_MS, accruedRef.current + (now - startRef.current))
     }
-  }, [index, paused, go])
+  }, [index, paused, hold, go])
 
   function onPointerDown() {
+    if (hold) return
     setPaused(true)
   }
 
   function onPointerUp(e: ReactPointerEvent) {
+    if (hold) {
+      // Only allow going back from the download slide via left third
+      const x = e.clientX
+      const w = window.innerWidth
+      if (x < w * 0.33) go(index - 1)
+      return
+    }
     setPaused(false)
     const x = e.clientX
     const w = window.innerWidth
@@ -74,12 +92,11 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
     else go(index + 1)
   }
 
-  const slide = slides[index]
   if (!slide) return null
 
   return (
     <div
-      className={`story story--pattern-${slide.pattern}`}
+      className={`story story--pattern-${slide.pattern}${hold ? ' story--hold' : ''}`}
       style={{ background: slide.gradient }}
       onPointerLeave={() => setPaused(false)}
       role="presentation"
@@ -111,17 +128,21 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
             go(index - 1)
           }}
         />
-        <button
-          type="button"
-          className="story__zone story__zone--right"
-          aria-label="Next"
-          onPointerDown={onPointerDown}
-          onPointerUp={(e: ReactPointerEvent) => onPointerUp(e)}
-        />
+        {!hold ? (
+          <button
+            type="button"
+            className="story__zone story__zone--right"
+            aria-label="Next"
+            onPointerDown={onPointerDown}
+            onPointerUp={(e: ReactPointerEvent) => onPointerUp(e)}
+          />
+        ) : null}
         <div className="story__body">{slide.render()}</div>
       </div>
 
-      <p className="story__hint">Tap left / right · hold to pause</p>
+      <p className="story__hint">
+        {hold ? 'Download your cards · tap left to go back · × to close' : 'Tap left / right · hold to pause'}
+      </p>
     </div>
   )
 }

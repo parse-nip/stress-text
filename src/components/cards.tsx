@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { toPng } from 'html-to-image'
 import type { WrappedStats } from '../types/telegram'
@@ -84,6 +84,8 @@ export interface StorySlide {
   id: string
   gradient: string
   pattern: StoryPattern
+  /** Freeze auto-advance (used on the final download slide). */
+  hold?: boolean
   render: () => ReactNode
 }
 
@@ -575,13 +577,12 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           {
             id: 'lex',
             gradient: 'var(--grad-essay)',
-            pattern: 'grid',
+            pattern: 'none',
             render: () => (
-              <StatCard
-                mood="cheeky"
-                layout="hero"
-                eyebrow={lex.kind === 'phrase' ? 'Catchphrase' : 'Most used word'}
-                headline={<span className="stat-card__mega stat-card__mega--word">“{lex.value}”</span>}
+              <LexWordCard
+                value={lex.value}
+                count={lex.count}
+                kind={lex.kind}
                 sub={copy.lex}
               />
             ),
@@ -662,11 +663,71 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
       id: 'summary',
       gradient: 'var(--grad-summary)',
       pattern: 'none',
+      hold: true,
       render: () => <SummaryGrid stats={stats} />,
     },
   )
 
   return slides
+}
+
+function LexWordCard({
+  value,
+  count,
+  kind,
+  sub,
+}: {
+  value: string
+  count: number
+  kind: 'word' | 'phrase'
+  sub: string
+}) {
+  const [shown, setShown] = useState(0)
+  const row = useMemo(() => Array.from({ length: 12 }, () => value).join('   ·   '), [value])
+
+  useEffect(() => {
+    let raf = 0
+    const start = performance.now()
+    const duration = Math.min(1600, 700 + count * 4)
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      // ease-out cubic
+      const eased = 1 - (1 - t) ** 3
+      setShown(Math.round(eased * count))
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [count])
+
+  return (
+    <div className="lex-slide">
+      <div className="lex-marquee" aria-hidden>
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <div
+            key={i}
+            className={`lex-marquee__row${i % 2 === 1 ? ' lex-marquee__row--rev' : ''}`}
+            style={{ animationDuration: `${14 + i * 2.2}s` }}
+          >
+            <span>{row}</span>
+            <span>{row}</span>
+          </div>
+        ))}
+      </div>
+      <StatCard
+        mood="cheeky"
+        layout="hero"
+        eyebrow={kind === 'phrase' ? 'Catchphrase' : 'Most used word'}
+        headline={<span className="stat-card__mega stat-card__mega--word">“{value}”</span>}
+        sub={sub}
+      >
+        <p className="lex-times">
+          <span className="lex-times__num">{formatNumber(shown)}</span>
+          <span className="lex-times__label">times</span>
+        </p>
+      </StatCard>
+    </div>
+  )
 }
 
 function SummaryGrid({ stats }: { stats: WrappedStats }) {
