@@ -29,6 +29,7 @@ Track what you understand as we build. Check items only when you can explain the
 - [ ] Why some cards are **chart-forward** (donut, hour bars, gauge, waveform) instead of only a mega number
 - [ ] Why a paper-plane mascot recurs on every card (brand motif / reaction)
 - [ ] Why copy is cheeky but not judgmental
+- [ ] Why **flavor copy** branches on thresholds (e.g. 3× message lead → “Wow, you had a lot to say”) instead of one fixed caption per card
 
 ## 4. Broader impact
 
@@ -47,6 +48,7 @@ Track what you understand as we build. Check items only when you can explain the
 5. Why does `hourHistogram` sum to `totalMessages`? What would break a chart if it didn’t?
 6. Name two story background patterns and which card type they suit (e.g. waves → voice).
 7. On the reply-speed card, why is a *shorter* average reply time drawn as a *longer* speed bar?
+8. If you sent 900 messages and they sent 100, which volume caption should fire — and why not the “neck and neck” line?
 
 ---
 

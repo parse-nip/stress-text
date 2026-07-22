@@ -1,7 +1,26 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { toPng } from 'html-to-image'
 import type { WrappedStats } from '../types/telegram'
-import { formatDuration, formatHour, formatNumber, formatPct, formatVoice } from '../lib/format'
+import { formatDuration, formatHour, formatNumber, formatPct } from '../lib/format'
+import {
+  badgesHeadline,
+  chaosCopy,
+  comebackCopy,
+  doubleTextCopy,
+  emojiCopy,
+  essayCopy,
+  introCopy,
+  leftOnReadCopy,
+  mediaCopy,
+  nightOwlCopy,
+  oneSidedCopy,
+  openerCopy,
+  primeTimeCopy,
+  replySpeedCopy,
+  streakCopy,
+  voiceCopy,
+  volumeCopy,
+} from '../lib/flavorCopy'
 import { StatCard } from './StatCard'
 import {
   ArcGauge,
@@ -55,22 +74,36 @@ export interface StorySlide {
 
 export function buildSlides(stats: WrappedStats): StorySlide[] {
   const { you, them } = stats
-  const yearLabel = stats.year ? String(stats.year) : 'this chat'
-  const youFaster =
-    you.avgReplyMs != null && them.avgReplyMs != null
-      ? you.avgReplyMs <= them.avgReplyMs
-      : true
 
   const doubleTexter = you.maxConsecutiveWithoutReply >= them.maxConsecutiveWithoutReply ? you : them
   const mediaKing = you.mediaCount >= them.mediaCount ? you : them
   const bangKing = you.exclamationCount >= them.exclamationCount ? you : them
   const capsKing = you.allCapsCount >= them.allCapsCount ? you : them
   const editKing = you.editedCount >= them.editedCount ? you : them
-  const voiceKing = you.voiceCount >= them.voiceCount ? you : them
   const longestMsg = you.longestMessageWords >= them.longestMessageWords ? you : them
 
   const hours = hourLabels(stats.hourHistogram, stats.primeHour)
   const days = dowLabels(stats.dowHistogram, stats.primeDayOfWeek)
+
+  const copy = {
+    intro: introCopy(stats),
+    volume: volumeCopy(stats),
+    reply: replySpeedCopy(stats),
+    leftOnRead: leftOnReadCopy(stats),
+    night: nightOwlCopy(stats),
+    streak: streakCopy(stats),
+    prime: primeTimeCopy(stats),
+    opener: openerCopy(stats),
+    double: doubleTextCopy(stats),
+    oneSided: oneSidedCopy(stats),
+    voice: voiceCopy(stats),
+    media: mediaCopy(stats),
+    essay: essayCopy(stats),
+    chaos: chaosCopy(stats),
+    emoji: emojiCopy(stats),
+    comeback: comebackCopy(stats),
+    badges: badgesHeadline(stats),
+  }
 
   return [
     {
@@ -88,12 +121,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
               <span className="stat-card__mega-label">messages</span>
             </>
           }
-          sub={
-            <>
-              Your year in <strong>{stats.chatName}</strong>
-              {stats.year ? ` · ${yearLabel}` : ''}. Buckle up.
-            </>
-          }
+          sub={copy.intro}
         />
       ),
     },
@@ -111,11 +139,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
               {you.messageCount >= them.messageCount ? you.name : them.name}
             </span>
           }
-          sub={
-            you.messageCount >= them.messageCount
-              ? 'You clearly had a lot to say.'
-              : `${them.name} took the mic — respectfully.`
-          }
+          sub={copy.volume}
         >
           <SplitDonut
             a={you.messageCount}
@@ -145,11 +169,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
               </span>
             </>
           }
-          sub={
-            youFaster
-              ? 'Your paper plane left the hangar first.'
-              : `${them.name} usually landed first. Speed isn't everything… usually.`
-          }
+          sub={copy.reply}
         >
           <SpeedMeters youMs={you.avgReplyMs} themMs={them.avgReplyMs} themName={them.name} />
         </StatCard>
@@ -165,11 +185,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           layout="hero"
           eyebrow='The epic "left on read"'
           headline={<span className="stat-card__mega">{formatDuration(stats.longestLeftOnReadMs)}</span>}
-          sub={
-            stats.longestLeftOnReadBy
-              ? `Longest wait before ${stats.longestLeftOnReadBy} replied. Worth the suspense.`
-              : 'A legendary pause in the timeline.'
-          }
+          sub={copy.leftOnRead}
         >
           <div className="viz-timeline" aria-hidden>
             <span className="viz-timeline__dot" />
@@ -189,12 +205,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           layout="chart"
           eyebrow="Night owl energy"
           headline={<span className="stat-card__line">After midnight</span>}
-          sub={
-            <>
-              of <em>your</em> messages flew between 12am–4am. Badge:{' '}
-              <strong>{stats.badges.nightOwl}</strong>.
-            </>
-          }
+          sub={copy.night}
         >
           <ArcGauge value={you.lateNightPct} label={`${them.name}: ${formatPct(them.lateNightPct)}`} />
         </StatCard>
@@ -215,7 +226,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
               <span className="stat-card__mega-label">days in a row</span>
             </>
           }
-          sub="Without missing a single day. Streak Master energy."
+          sub={copy.streak}
         >
           <StreakDots count={stats.longestDailyStreak} />
         </StatCard>
@@ -236,7 +247,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
               <span className="stat-card__mega-label">around {formatHour(stats.primeHour)}</span>
             </>
           }
-          sub="That's when this chat hits peak altitude."
+          sub={copy.prime}
         >
           <VerticalBars items={hours} className="chart-vbars--hours" />
           <p className="chart-caption">Messages by hour · peak highlighted</p>
@@ -270,7 +281,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           layout="chart"
           eyebrow="Who starts the day?"
           headline={<span className="stat-card__line">{stats.badges.mostReliableOpener}</span>}
-          sub="Most reliable opener — first message of the day."
+          sub={copy.opener}
         >
           <HorizontalRankBars
             items={[
@@ -296,14 +307,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
               <span className="stat-card__mega-label">in a row</span>
             </>
           }
-          sub={
-            <>
-              {doubleTexter.name}'s longest no-reply streak.
-              {doubleTexter.timesDoubleTexted > 0 && (
-                <> They double+ texted {formatNumber(doubleTexter.timesDoubleTexted)} times.</>
-              )}
-            </>
-          }
+          sub={copy.double}
         >
           <HorizontalRankBars
             items={[
@@ -328,8 +332,6 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
       pattern: 'stripes',
       render: () => {
         const d = stats.mostOneSidedDay
-        const leader =
-          d?.leaderId === you.id ? you.name : d?.leaderId === them.id ? them.name : 'someone'
         const youN = d ? (d.counts[you.id] ?? 0) : 0
         const themN = d ? (d.counts[them.id] ?? 0) : 0
         return (
@@ -338,11 +340,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
             layout="chart"
             eyebrow="Most one-sided day"
             headline={<span className="stat-card__mega">{d ? formatNumber(d.imbalance) : '0'}</span>}
-            sub={
-              d
-                ? `Message gap on ${d.dateKey}. ${leader} carried the chat that day.`
-                : 'Surprisingly balanced. Weirdly wholesome.'
-            }
+            sub={copy.oneSided}
           >
             {d ? (
               <HorizontalRankBars
@@ -371,14 +369,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
               <span className="stat-card__mega-label">voice messages</span>
             </>
           }
-          sub={
-            <>
-              Longest: {formatVoice(Math.max(you.longestVoiceSec, them.longestVoiceSec))}
-              {voiceKing.voiceCount > 0 && (
-                <> · {voiceKing.name} sent the most ({formatNumber(voiceKing.voiceCount)}).</>
-              )}
-            </>
-          }
+          sub={copy.voice}
         >
           <Waveform />
           <HorizontalRankBars
@@ -400,7 +391,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           layout="chart"
           eyebrow="Photos & videos"
           headline={<span className="stat-card__mega">{formatNumber(mediaKing.mediaCount)}</span>}
-          sub={<>{mediaKing.name} shared the most media.</>}
+          sub={copy.media}
         >
           <MediaStack
             photos={you.photoCount + them.photoCount}
@@ -424,11 +415,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
               <span className="stat-card__mega-label">words in one message</span>
             </>
           }
-          sub={
-            <>
-              {longestMsg.name}'s magnum opus. Badge: <strong>{stats.badges.essayWriter}</strong>.
-            </>
-          }
+          sub={copy.essay}
         >
           <HorizontalRankBars
             items={[
@@ -457,7 +444,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           layout="chart"
           eyebrow="Chaos metadata"
           headline={<span className="stat-card__line">Spicy punctuation</span>}
-          sub="Still content-blind. Just vibes and punctuation."
+          sub={copy.chaos}
         >
           <HorizontalRankBars
             items={[
@@ -491,13 +478,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           layout="hero"
           eyebrow="Emoji royalty"
           headline={<span className="stat-card__mega emoji-hero">{stats.topEmoji ?? '✈️'}</span>}
-          sub={
-            stats.topEmoji
-              ? `Used ${formatNumber(stats.topEmojiCount)} times. ${
-                  stats.topEmojiLeader ? `${stats.topEmojiLeader} wore the crown.` : ''
-                }`
-              : 'A surprisingly emoji-free zone. Minimalist icons.'
-          }
+          sub={copy.emoji}
         />
       ),
     },
@@ -511,7 +492,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           layout="hero"
           eyebrow="The comeback"
           headline={<span className="stat-card__mega">{formatDuration(stats.comebackGapMs)}</span>}
-          sub="Biggest gap before the chat picked back up. Absence makes the paper plane fly farther."
+          sub={copy.comeback}
         >
           <div className="viz-timeline viz-timeline--long" aria-hidden>
             <span className="viz-timeline__dot" />
@@ -530,7 +511,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           mood="celebrate"
           layout="chart"
           eyebrow="Superlative cards"
-          headline={<span className="stat-card__line">Your badges</span>}
+          headline={<span className="stat-card__line">{copy.badges}</span>}
         >
           <ul className="badge-grid">
             <li>
