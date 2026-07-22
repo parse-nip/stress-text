@@ -82,13 +82,22 @@ button {
   padding: 2.75rem 1.25rem 3.25rem;
   position: relative;
   overflow: hidden;
-  background:
-    repeating-linear-gradient(
-      -18deg,
-      transparent 0 14px,
-      rgba(255, 255, 255, 0.018) 14px 15px
-    ),
-    var(--ink);
+  /* Bold field — no black void */
+  background: linear-gradient(155deg, var(--c-magenta) 0%, #ff2d6f 42%, var(--c-cobalt) 100%);
+}
+
+/* Seamless scrolling polka dots */
+.landing__pattern {
+  position: absolute;
+  inset: -50%;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.34) 0 3px, transparent 3.5px),
+    radial-gradient(circle at center, rgba(185, 255, 46, 0.28) 0 2px, transparent 2.5px);
+  background-size: 32px 32px, 48px 48px;
+  background-position: 0 0, 16px 16px;
+  animation: polka-scroll 14s linear infinite;
 }
 
 .landing__sky {
@@ -99,59 +108,11 @@ button {
   overflow: hidden;
 }
 
-.landing__shard {
-  position: absolute;
-  display: block;
-  will-change: transform;
-}
-
-.landing__shard--magenta {
-  top: -10%;
-  left: -8%;
-  width: min(72vw, 640px);
-  height: min(48vh, 420px);
-  background: var(--c-magenta);
-  clip-path: polygon(0 0, 100% 0, 100% 38%, 48% 100%, 0 64%);
-  animation: shard-drift-a 14s ease-in-out infinite;
-}
-
-.landing__shard--cobalt {
-  right: -10%;
-  bottom: -12%;
-  width: min(70vw, 620px);
-  height: min(52vh, 460px);
-  background: var(--c-cobalt);
-  clip-path: polygon(56% 0, 100% 30%, 100% 100%, 0 100%, 18% 44%);
-  animation: shard-drift-b 16s ease-in-out infinite;
-}
-
-.landing__shard--lime {
-  top: 28%;
-  right: 6%;
-  width: min(38vw, 280px);
-  height: min(28vh, 220px);
-  background: var(--c-lime);
-  clip-path: polygon(0 18%, 78% 0, 100% 72%, 28% 100%);
-  opacity: 0.92;
-  animation: shard-drift-c 11s ease-in-out infinite;
-}
-
-.landing__shard--orange {
-  left: 4%;
-  bottom: 18%;
-  width: min(28vw, 200px);
-  height: min(22vh, 160px);
-  background: var(--c-orange);
-  clip-path: polygon(10% 0, 100% 22%, 82% 100%, 0 70%);
-  opacity: 0.85;
-  animation: shard-drift-a 18s ease-in-out infinite reverse;
-}
-
 .landing__drift {
   position: absolute;
-  opacity: 0.28;
+  opacity: 0.35;
   color: #fff;
-  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.25));
 }
 
 .landing__drift--a {
@@ -240,10 +201,11 @@ button {
   position: relative;
   width: 100%;
   padding: 1.85rem 1.5rem;
-  border: 2.5px dashed rgba(185, 255, 46, 0.55);
+  border: 2.5px dashed rgba(255, 255, 255, 0.75);
   border-radius: 0.65rem;
-  background: rgba(10, 4, 16, 0.78);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
   cursor: pointer;
   text-align: center;
   transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
@@ -253,9 +215,9 @@ button {
 .dropzone--active {
   border-color: var(--c-lime);
   border-style: solid;
-  background: rgba(10, 4, 16, 0.9);
+  background: rgba(255, 255, 255, 0.24);
   transform: translateY(-3px);
-  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.42);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
 }
 
 .dropzone--loading {
@@ -279,8 +241,8 @@ button {
 }
 
 .landing__error {
-  color: #fecdd3;
-  background: rgba(190, 24, 93, 0.4);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.28);
   padding: 0.65rem 1rem;
   border-radius: 0.5rem;
   margin: 0;
@@ -342,33 +304,13 @@ button {
   }
 }
 
-@keyframes shard-drift-a {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0deg);
+@keyframes polka-scroll {
+  from {
+    transform: translate(0, 0);
   }
-  50% {
-    transform: translate(2.5%, 1.5%) rotate(1.2deg);
-  }
-}
-
-@keyframes shard-drift-b {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  50% {
-    transform: translate(-2%, -1.5%) rotate(-1deg);
-  }
-}
-
-@keyframes shard-drift-c {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(-2deg);
-  }
-  50% {
-    transform: translate(-3%, 2%) rotate(3deg);
+  to {
+    /* One tile of the larger grid → seamless loop */
+    transform: translate(48px, 48px);
   }
 }
 
@@ -1098,7 +1040,7 @@ button {
   .chart-years__bar,
   .chart-dwell__bar,
   .chart-gauge__fill,
-  .landing__shard,
+  .landing__pattern,
   .landing__drift,
   .landing__brand,
   .landing__tagline,

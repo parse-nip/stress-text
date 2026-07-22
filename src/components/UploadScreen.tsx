@@ -32,11 +32,8 @@ export function UploadScreen({ onFile, onDemo, error, loading }: UploadScreenPro
 
   return (
     <div className="landing">
+      <div className="landing__pattern" aria-hidden />
       <div className="landing__sky" aria-hidden>
-        <span className="landing__shard landing__shard--magenta" />
-        <span className="landing__shard landing__shard--cobalt" />
-        <span className="landing__shard landing__shard--lime" />
-        <span className="landing__shard landing__shard--orange" />
         <PaperPlane mood="race" size={56} className="landing__drift landing__drift--a" />
         <PaperPlane mood="idle" size={40} className="landing__drift landing__drift--b" />
         <PaperPlane mood="cheeky" size={48} className="landing__drift landing__drift--c" />
