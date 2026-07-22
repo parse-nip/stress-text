@@ -45,6 +45,10 @@ assert(allTime.yearCompare!.priorYear === 2024, 'prior year')
 assert(allTime.monthHistogram.length >= 3, 'all-time months span 2024→2025')
 assert(allTime.topWord != null || allTime.topPhrase != null, 'expected a top word or phrase')
 assert(allTime.topPhrase?.value.includes('coffee') || allTime.topWord?.value === 'coffee', 'coffee catchphrase')
+assert(stats.primeHourCount === stats.hourHistogram[stats.primeHour], 'prime hour count matches hist')
+assert(stats.laughHistogram.length === 24, 'laugh histogram')
+assert(stats.funniestHourLaughs > 0, 'demo should have laughs')
+assert(stats.funniestHour >= 0, 'funniest hour set')
 
 console.log('✓ computeStats tests passed')
 console.log(

@@ -140,10 +140,17 @@ export interface WrappedStats {
   longestDailyStreak: number
   streakEndedOn: string | null
   primeHour: number
+  /** Messages in the peak hour bucket */
+  primeHourCount: number
   primeDayOfWeek: number
   primeDayName: string
   /** Messages per hour of day (0–23) — for prime-time charts */
   hourHistogram: number[]
+  /** Laugh tokens (haha/lol/…) per hour of day */
+  laughHistogram: number[]
+  /** Hour (0–23) with the most laugh tokens; -1 if none */
+  funniestHour: number
+  funniestHourLaughs: number
   /** Messages per weekday (0=Sun … 6=Sat) */
   dowHistogram: number[]
   /** Contiguous month buckets across the filtered range */

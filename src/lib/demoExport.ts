@@ -101,6 +101,17 @@ export function buildDemoExport(): TelegramExport {
       )
     }
 
+    // comedy hour — pile of laughs around 9pm
+    if (day % 2 === 0) {
+      const funny = new Date(base)
+      funny.setHours(21, 10 + (day % 20), 0, 0)
+      messages.push(msg(id++, them, themId, funny, 'wait what hahaha'))
+      messages.push(
+        msg(id++, you, youId, new Date(funny.getTime() + 25_000), 'lol stopppp hahahaha'),
+      )
+      messages.push(msg(id++, them, themId, new Date(funny.getTime() + 50_000), 'lmao okay 😂'))
+    }
+
     // media
     if (day % 6 === 0) {
       const pic = new Date(base)

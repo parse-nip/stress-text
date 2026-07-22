@@ -8,6 +8,7 @@ import type {
 } from '../types/telegram'
 import { detectParticipants } from './parseTelegram'
 import { computeTopLexemes } from './topWords'
+import { countLaughs } from './laughs'
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -261,8 +262,9 @@ export function computeWrappedStats(
   peopleMap.set(youMeta.id, emptyPerson(youMeta.id, youMeta.name))
   peopleMap.set(themMeta.id, emptyPerson(themMeta.id, themMeta.name))
 
-  const hourCounts = new Array(24).fill(0)
-  const dowCounts = new Array(7).fill(0)
+  const hourCounts = new Array(24).fill(0) as number[]
+  const laughCounts = new Array(24).fill(0) as number[]
+  const dowCounts = new Array(7).fill(0) as number[]
   const dayMap = new Map<string, DayActivity>()
 
   for (const m of filtered) {
@@ -295,7 +297,9 @@ export function computeWrappedStats(
       p.emojiCounts[e] = (p.emojiCounts[e] ?? 0) + 1
     }
 
-    hourCounts[m.date.getHours()] += 1
+    const hour = m.date.getHours()
+    hourCounts[hour] += 1
+    laughCounts[hour] += countLaughs(m.text)
     dowCounts[m.date.getDay()] += 1
 
     const dk = dateKey(m.date)
@@ -387,8 +391,16 @@ export function computeWrappedStats(
 
   let primeHour = 0
   let primeDow = 0
+  let funniestHour = -1
+  let funniestHourLaughs = 0
   for (let h = 0; h < 24; h++) if (hourCounts[h] > hourCounts[primeHour]) primeHour = h
   for (let d = 0; d < 7; d++) if (dowCounts[d] > dowCounts[primeDow]) primeDow = d
+  for (let h = 0; h < 24; h++) {
+    if (laughCounts[h] > funniestHourLaughs) {
+      funniestHourLaughs = laughCounts[h]
+      funniestHour = h
+    }
+  }
 
   const you = peopleMap.get(youMeta.id)!
   const them = peopleMap.get(themMeta.id)!
@@ -429,9 +441,13 @@ export function computeWrappedStats(
     longestDailyStreak: daily.longest,
     streakEndedOn: daily.endedOn,
     primeHour,
+    primeHourCount: hourCounts[primeHour] ?? 0,
     primeDayOfWeek: primeDow,
     primeDayName: DAY_NAMES[primeDow],
     hourHistogram: hourCounts,
+    laughHistogram: laughCounts,
+    funniestHour,
+    funniestHourLaughs,
     dowHistogram: dowCounts,
     monthHistogram: buildMonthHistogram(filtered),
     yearCompare: buildYearCompare(filtered, yearFilter),

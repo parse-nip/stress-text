@@ -184,14 +184,34 @@ export function streakCopy(stats: WrappedStats): string {
 }
 
 export function primeTimeCopy(stats: WrappedStats): string {
-  const h = stats.primeHour
   const day = stats.primeDayName
-  if (h >= 0 && h < 5) return `${day} around ${formatHour(h)} — peak chaos o'clock.`
-  if (h >= 5 && h < 9) return `${day} mornings. Coffee-powered altitude.`
-  if (h >= 9 && h < 12) return `${day} late mornings. Productive chatter window.`
-  if (h >= 12 && h < 17) return `${day} afternoons — that's when this chat hits peak altitude.`
-  if (h >= 17 && h < 21) return `${day} evenings. Prime hangout hours.`
-  return `${day} nights. Peak altitude after dark.`
+  const total = stats.dowHistogram[stats.primeDayOfWeek] ?? 0
+  if (total <= 0) return `${day} edges it — barely.`
+  return `${day} is the loudest weekday with ${formatNumber(total)} messages. Ritual day.`
+}
+
+export function peakHourCopy(stats: WrappedStats): string {
+  const h = stats.primeHour
+  const n = stats.primeHourCount
+  if (n <= 0) return 'No clear peak hour — evenly sprinkled chaos.'
+  if (h >= 0 && h < 5) {
+    return `${formatNumber(n)} messages around ${formatHour(h)}. Peak goblin hours.`
+  }
+  if (h >= 22 || h < 6) {
+    return `${formatNumber(n)} messages clustered around ${formatHour(h)}. Night shift unlocked.`
+  }
+  return `${formatNumber(n)} messages landed around ${formatHour(h)}. Your chat's rush hour.`
+}
+
+export function funniestHourCopy(stats: WrappedStats): string {
+  if (stats.funniestHour < 0 || stats.funniestHourLaughs <= 0) {
+    return 'A dry run — barely a lol in the logs. Stone-faced legends.'
+  }
+  const h = formatHour(stats.funniestHour)
+  const n = stats.funniestHourLaughs
+  if (n < 5) return `A few giggles peaked around ${h}. Soft laughter hour.`
+  if (n < 20) return `${formatNumber(n)} laughs stacked around ${h}. Comedy window.`
+  return `${formatNumber(n)} hahas around ${h}. Certified funniest hour.`
 }
 
 export function openerCopy(stats: WrappedStats): string {

@@ -19,6 +19,7 @@ import {
   doubleTextCopy,
   emojiCopy,
   essayCopy,
+  funniestHourCopy,
   introCopy,
   leftOnReadCopy,
   lexCopy,
@@ -27,6 +28,7 @@ import {
   nightOwlCopy,
   oneSidedCopy,
   openerCopy,
+  peakHourCopy,
   primeTimeCopy,
   replySpeedCopy,
   streakCopy,
@@ -35,6 +37,15 @@ import {
   yearCompareCopy,
 } from '../lib/flavorCopy'
 import { StatCard } from './StatCard'
+import {
+  FlameStrip,
+  GapPulse,
+  LaughCascade,
+  PeakHourClock,
+  PulseRings,
+  SpeedDashes,
+  StarField,
+} from './CardMotifs'
 import {
   ArcGauge,
   HorizontalRankBars,
@@ -118,7 +129,9 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
     leftOnRead: leftOnReadCopy(stats),
     night: nightOwlCopy(stats),
     streak: streakCopy(stats),
+    peakHour: peakHourCopy(stats),
     prime: primeTimeCopy(stats),
+    funniest: funniestHourCopy(stats),
     opener: openerCopy(stats),
     double: doubleTextCopy(stats),
     oneSided: oneSidedCopy(stats),
@@ -234,24 +247,27 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
       gradient: 'var(--grad-volume)',
       pattern: 'circles',
       render: () => (
-        <StatCard
-          mood="idle"
-          layout="chart"
-          eyebrow="Who talks more?"
-          headline={
-            <span className="stat-card__line">
-              {you.messageCount >= them.messageCount ? 'You' : them.name}
-            </span>
-          }
-          sub={copy.volume}
-        >
-          <SplitDonut
-            a={you.messageCount}
-            b={them.messageCount}
-            aLabel={`You · ${formatNumber(you.messageCount)}`}
-            bLabel={`${them.name} · ${formatNumber(them.messageCount)}`}
-          />
-        </StatCard>
+        <div className="motif-wrap">
+          <PulseRings />
+          <StatCard
+            mood="idle"
+            layout="chart"
+            eyebrow="Who talks more?"
+            headline={
+              <span className="stat-card__line">
+                {you.messageCount >= them.messageCount ? 'You' : them.name}
+              </span>
+            }
+            sub={copy.volume}
+          >
+            <SplitDonut
+              a={you.messageCount}
+              b={them.messageCount}
+              aLabel={`You · ${formatNumber(you.messageCount)}`}
+              bLabel={`${them.name} · ${formatNumber(them.messageCount)}`}
+            />
+          </StatCard>
+        </div>
       ),
     },
     {
@@ -259,24 +275,27 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
       gradient: 'var(--grad-speed)',
       pattern: 'rays',
       render: () => (
-        <StatCard
-          mood="race"
-          layout="chart"
-          eyebrow="Reply speed"
-          headline={
-            <>
-              <span className="stat-card__line">
-                You: <em>{you.avgReplyMs != null ? formatDuration(you.avgReplyMs) : '—'}</em>
-              </span>
-              <span className="stat-card__line stat-card__line--sm">
-                {them.name}: {them.avgReplyMs != null ? formatDuration(them.avgReplyMs) : '—'}
-              </span>
-            </>
-          }
-          sub={copy.reply}
-        >
-          <SpeedMeters youMs={you.avgReplyMs} themMs={them.avgReplyMs} themName={them.name} />
-        </StatCard>
+        <div className="motif-wrap">
+          <SpeedDashes />
+          <StatCard
+            mood="race"
+            layout="chart"
+            eyebrow="Reply speed"
+            headline={
+              <>
+                <span className="stat-card__line">
+                  You: <em>{you.avgReplyMs != null ? formatDuration(you.avgReplyMs) : '—'}</em>
+                </span>
+                <span className="stat-card__line stat-card__line--sm">
+                  {them.name}: {them.avgReplyMs != null ? formatDuration(them.avgReplyMs) : '—'}
+                </span>
+              </>
+            }
+            sub={copy.reply}
+          >
+            <SpeedMeters youMs={you.avgReplyMs} themMs={them.avgReplyMs} themName={them.name} />
+          </StatCard>
+        </div>
       ),
     },
     {
@@ -284,19 +303,22 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
       gradient: 'var(--grad-read)',
       pattern: 'halftone',
       render: () => (
-        <StatCard
-          mood="think"
-          layout="hero"
-          eyebrow='The epic "left on read"'
-          headline={<span className="stat-card__mega">{formatDuration(stats.longestLeftOnReadMs)}</span>}
-          sub={copy.leftOnRead}
-        >
-          <div className="viz-timeline" aria-hidden>
-            <span className="viz-timeline__dot" />
-            <span className="viz-timeline__gap" />
-            <span className="viz-timeline__dot viz-timeline__dot--end" />
-          </div>
-        </StatCard>
+        <div className="motif-wrap">
+          <GapPulse />
+          <StatCard
+            mood="think"
+            layout="hero"
+            eyebrow='The epic "left on read"'
+            headline={<span className="stat-card__mega">{formatDuration(stats.longestLeftOnReadMs)}</span>}
+            sub={copy.leftOnRead}
+          >
+            <div className="viz-timeline" aria-hidden>
+              <span className="viz-timeline__dot" />
+              <span className="viz-timeline__gap" />
+              <span className="viz-timeline__dot viz-timeline__dot--end" />
+            </div>
+          </StatCard>
+        </div>
       ),
     },
     {
@@ -304,15 +326,18 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
       gradient: 'var(--grad-night)',
       pattern: 'dots',
       render: () => (
-        <StatCard
-          mood="sleepy"
-          layout="chart"
-          eyebrow="Night owl energy"
-          headline={<span className="stat-card__line">After midnight</span>}
-          sub={copy.night}
-        >
-          <ArcGauge value={you.lateNightPct} label={`${them.name}: ${formatPct(them.lateNightPct)}`} />
-        </StatCard>
+        <div className="motif-wrap">
+          <StarField />
+          <StatCard
+            mood="sleepy"
+            layout="chart"
+            eyebrow="Night owl energy"
+            headline={<span className="stat-card__line">After midnight</span>}
+            sub={copy.night}
+          >
+            <ArcGauge value={you.lateNightPct} label={`${them.name}: ${formatPct(them.lateNightPct)}`} />
+          </StatCard>
+        </div>
       ),
     },
     {
@@ -320,19 +345,46 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
       gradient: 'var(--grad-fire)',
       pattern: 'zigzag',
       render: () => (
+        <div className="motif-wrap">
+          <FlameStrip />
+          <StatCard
+            mood="fire"
+            layout="chart"
+            eyebrow="Daily streak"
+            headline={
+              <>
+                <span className="stat-card__mega">{stats.longestDailyStreak}</span>
+                <span className="stat-card__mega-label">days in a row</span>
+              </>
+            }
+            sub={copy.streak}
+          >
+            <StreakDots count={stats.longestDailyStreak} />
+          </StatCard>
+        </div>
+      ),
+    },
+    {
+      id: 'peak-hour',
+      gradient: 'var(--grad-speed)',
+      pattern: 'rays',
+      render: () => (
         <StatCard
-          mood="fire"
+          mood="race"
           layout="chart"
-          eyebrow="Daily streak"
+          eyebrow="Busiest hour"
           headline={
             <>
-              <span className="stat-card__mega">{stats.longestDailyStreak}</span>
-              <span className="stat-card__mega-label">days in a row</span>
+              <span className="stat-card__mega">{formatHour(stats.primeHour)}</span>
+              <span className="stat-card__mega-label">
+                {formatNumber(stats.primeHourCount)} messages
+              </span>
             </>
           }
-          sub={copy.streak}
+          sub={copy.peakHour}
         >
-          <StreakDots count={stats.longestDailyStreak} />
+          <PeakHourClock hour={stats.primeHour} />
+          <VerticalBars items={hours} className="chart-vbars--hours" />
         </StatCard>
       ),
     },
@@ -344,17 +396,15 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
         <StatCard
           mood="idle"
           layout="chart"
-          eyebrow="Prime time"
+          eyebrow="Prime day"
           headline={
             <>
               <span className="stat-card__line">{stats.primeDayName}</span>
-              <span className="stat-card__mega-label">around {formatHour(stats.primeHour)}</span>
+              <span className="stat-card__mega-label">your loudest weekday</span>
             </>
           }
           sub={copy.prime}
         >
-          <VerticalBars items={hours} className="chart-vbars--hours" />
-          <p className="chart-caption">Messages by hour · peak highlighted</p>
           <div className="week-strip" aria-label="Messages by weekday">
             {days.map((d, i) => {
               const max = Math.max(...days.map((x) => x.value), 1)
@@ -375,6 +425,34 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
         </StatCard>
       ),
     },
+    ...(stats.funniestHour >= 0 && stats.funniestHourLaughs > 0
+      ? ([
+          {
+            id: 'funniest-hour',
+            gradient: 'var(--grad-double)',
+            pattern: 'none',
+            render: () => (
+              <div className="laugh-slide">
+                <LaughCascade />
+                <StatCard
+                  mood="cheeky"
+                  layout="hero"
+                  eyebrow="Funniest hour"
+                  headline={
+                    <>
+                      <span className="stat-card__mega">{formatHour(stats.funniestHour)}</span>
+                      <span className="stat-card__mega-label">
+                        {formatNumber(stats.funniestHourLaughs)} laughs
+                      </span>
+                    </>
+                  }
+                  sub={copy.funniest}
+                />
+              </div>
+            ),
+          },
+        ] as StorySlide[])
+      : []),
     {
       id: 'opener',
       gradient: 'var(--grad-opener)',
