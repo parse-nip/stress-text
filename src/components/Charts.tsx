@@ -65,69 +65,225 @@ export function HorizontalRankBars({
   )
 }
 
-/** Two-slice donut (you vs them). */
-export function SplitDonut({
+/** Bold you-vs-them towers (replaces the muddy donut for volume). */
+export function DuelTowers({
   a,
   b,
-  aLabel,
+  aLabel = 'You',
   bLabel,
-  size = 180,
+  aDisplay,
+  bDisplay,
   className = '',
 }: {
   a: number
   b: number
-  aLabel: string
+  aLabel?: string
   bLabel: string
-  size?: number
+  aDisplay?: string
+  bDisplay?: string
   className?: string
 }) {
-  const total = Math.max(a + b, 1)
-  const aPct = a / total
-  const r = 42
-  const c = 2 * Math.PI * r
-  const aLen = aPct * c
-  const bLen = c - aLen
-
+  const max = Math.max(a, b, 1)
+  const aLead = a >= b
   return (
-    <div className={`chart-donut ${className}`}>
-      <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden>
-        <circle
-          className="chart-donut__ring chart-donut__ring--b"
-          cx="50"
-          cy="50"
-          r={r}
-          fill="none"
-          strokeWidth="14"
-          strokeDasharray={`${bLen} ${c}`}
-          strokeDashoffset={-aLen}
-          transform="rotate(-90 50 50)"
-        />
-        <circle
-          className="chart-donut__ring chart-donut__ring--a"
-          cx="50"
-          cy="50"
-          r={r}
-          fill="none"
-          strokeWidth="14"
-          strokeDasharray={`${aLen} ${c}`}
-          strokeDashoffset={0}
-          transform="rotate(-90 50 50)"
-        />
-        <text x="50" y="48" textAnchor="middle" className="chart-donut__pct">
-          {Math.round(aPct * 100)}%
-        </text>
-        <text x="50" y="58" textAnchor="middle" className="chart-donut__pct-sub">
-          you
-        </text>
-      </svg>
-      <div className="chart-donut__legend">
-        <span>
-          <i className="swatch swatch--a" /> {aLabel}
-        </span>
-        <span>
-          <i className="swatch swatch--b" /> {bLabel}
-        </span>
+    <div className={`chart-duel ${className}`} role="img" aria-label={`${aLabel} vs ${bLabel}`}>
+      <div className={`chart-duel__col${aLead ? ' chart-duel__col--lead' : ''}`}>
+        <span className="chart-duel__val">{aDisplay ?? a.toLocaleString()}</span>
+        <div className="chart-duel__tower-wrap">
+          <div className="chart-duel__tower chart-duel__tower--a" style={{ height: `${(a / max) * 100}%` }} />
+        </div>
+        <span className="chart-duel__name">{aLabel}</span>
       </div>
+      <div className="chart-duel__vs" aria-hidden>
+        vs
+      </div>
+      <div className={`chart-duel__col${!aLead ? ' chart-duel__col--lead' : ''}`}>
+        <span className="chart-duel__val">{bDisplay ?? b.toLocaleString()}</span>
+        <div className="chart-duel__tower-wrap">
+          <div className="chart-duel__tower chart-duel__tower--b" style={{ height: `${(b / max) * 100}%` }} />
+        </div>
+        <span className="chart-duel__name">{bLabel}</span>
+      </div>
+    </div>
+  )
+}
+
+/** Seesaw / balance for one-sided days. */
+export function BalanceTilt({
+  left,
+  right,
+  leftLabel = 'You',
+  rightLabel,
+  className = '',
+}: {
+  left: number
+  right: number
+  leftLabel?: string
+  rightLabel: string
+  className?: string
+}) {
+  const total = Math.max(left + right, 1)
+  // tilt degrees: -18 … +18
+  const tilt = ((right - left) / total) * 18
+  return (
+    <div className={`chart-balance ${className}`} role="img" aria-label="Message balance">
+      <div className="chart-balance__fulcrum" aria-hidden />
+      <div className="chart-balance__beam" style={{ transform: `rotate(${tilt}deg)` }}>
+        <div className="chart-balance__pan chart-balance__pan--l">
+          <strong>{left}</strong>
+          <span>{leftLabel}</span>
+        </div>
+        <div className="chart-balance__pan chart-balance__pan--r">
+          <strong>{right}</strong>
+          <span>{rightLabel}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** Expanding bubble trail for double-text streaks. */
+export function BubbleTrail({
+  count,
+  className = '',
+}: {
+  count: number
+  className?: string
+}) {
+  const n = Math.min(Math.max(count, 1), 8)
+  return (
+    <div className={`chart-bubbles ${className}`} aria-hidden>
+      {Array.from({ length: n }, (_, i) => (
+        <span
+          key={i}
+          className="chart-bubbles__dot"
+          style={{
+            width: `${1.1 + i * 0.35}rem`,
+            height: `${1.1 + i * 0.35}rem`,
+            animationDelay: `${i * 0.1}s`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+/** Thermometer for essay / word length. */
+export function ThermoBar({
+  value,
+  max = 200,
+  label,
+  className = '',
+}: {
+  value: number
+  max?: number
+  label?: string
+  className?: string
+}) {
+  const pct = Math.min(100, (value / Math.max(max, 1)) * 100)
+  return (
+    <div className={`chart-thermo ${className}`} role="img" aria-label={label ?? `${value} words`}>
+      <div className="chart-thermo__tube">
+        <div className="chart-thermo__fill" style={{ height: `${pct}%` }} />
+        <div className="chart-thermo__bulb" />
+      </div>
+      {label ? <p className="chart-thermo__label">{label}</p> : null}
+    </div>
+  )
+}
+
+/** Twin arc clocks — polish vs reply timing. */
+export function TwinArcs({
+  leftValue,
+  rightValue,
+  leftLabel,
+  rightLabel,
+  leftDisplay,
+  rightDisplay,
+  className = '',
+}: {
+  leftValue: number
+  rightValue: number
+  leftLabel: string
+  rightLabel: string
+  leftDisplay: string
+  rightDisplay: string
+  className?: string
+}) {
+  const max = Math.max(leftValue, rightValue, 1)
+  const leftPct = leftValue / max
+  const rightPct = rightValue / max
+  const r = 36
+  const c = Math.PI * r
+  return (
+    <div className={`chart-twins ${className}`}>
+      <div className="chart-twins__item">
+        <svg viewBox="0 0 100 60" className="chart-twins__svg">
+          <path
+            className="chart-twins__track"
+            d="M 14 50 A 36 36 0 0 1 86 50"
+            fill="none"
+            strokeWidth="10"
+            strokeLinecap="round"
+          />
+          <path
+            className="chart-twins__fill chart-twins__fill--a"
+            d="M 14 50 A 36 36 0 0 1 86 50"
+            fill="none"
+            strokeWidth="10"
+            strokeLinecap="round"
+            strokeDasharray={`${leftPct * c} ${c}`}
+          />
+          <text x="50" y="46" textAnchor="middle" className="chart-twins__num">
+            {leftDisplay}
+          </text>
+        </svg>
+        <span>{leftLabel}</span>
+      </div>
+      <div className="chart-twins__item">
+        <svg viewBox="0 0 100 60" className="chart-twins__svg">
+          <path
+            className="chart-twins__track"
+            d="M 14 50 A 36 36 0 0 1 86 50"
+            fill="none"
+            strokeWidth="10"
+            strokeLinecap="round"
+          />
+          <path
+            className="chart-twins__fill chart-twins__fill--b"
+            d="M 14 50 A 36 36 0 0 1 86 50"
+            fill="none"
+            strokeWidth="10"
+            strokeLinecap="round"
+            strokeDasharray={`${rightPct * c} ${c}`}
+          />
+          <text x="50" y="46" textAnchor="middle" className="chart-twins__num">
+            {rightDisplay}
+          </text>
+        </svg>
+        <span>{rightLabel}</span>
+      </div>
+    </div>
+  )
+}
+
+/** Big glyph tiles for chaos punctuation. */
+export function GlyphTiles({
+  items,
+  className = '',
+}: {
+  items: Array<{ glyph: string; label: string; value: string }>
+  className?: string
+}) {
+  return (
+    <div className={`chart-glyphs ${className}`}>
+      {items.map((item) => (
+        <div key={item.glyph + item.label} className="chart-glyphs__tile">
+          <span className="chart-glyphs__glyph">{item.glyph}</span>
+          <span className="chart-glyphs__val">{item.value}</span>
+          <span className="chart-glyphs__label">{item.label}</span>
+        </div>
+      ))}
     </div>
   )
 }

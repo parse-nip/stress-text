@@ -1,4 +1,4 @@
-/** Decorative motion motifs kept for night-owl + funniest-hour cards. */
+/** Decorative motion motifs. */
 
 export function StarField() {
   return (
@@ -19,16 +19,15 @@ export function StarField() {
   )
 }
 
-/** Draft → strike → rewrite loop for the edit-spiral card. */
+/** Clean edit motif — stacked “draft layers” peeling, no fake captions. */
 export function RewriteSpiral() {
-  const lines = ['wait that came out wrong', 'okay try again', 'final version (for real)']
   return (
-    <div className="rewrite-spiral" aria-hidden>
-      {lines.map((line, i) => (
-        <p key={line} className="rewrite-spiral__line" style={{ animationDelay: `${i * 0.55}s` }}>
-          <span>{line}</span>
-        </p>
-      ))}
+    <div className="edit-stack" aria-hidden>
+      <span className="edit-stack__sheet" />
+      <span className="edit-stack__sheet" />
+      <span className="edit-stack__sheet edit-stack__sheet--top">
+        <i />
+      </span>
     </div>
   )
 }

@@ -41,12 +41,16 @@ import { StatCard } from './StatCard'
 import { LaughCascade, RewriteSpiral, StarField } from './CardMotifs'
 import {
   ArcGauge,
-  HorizontalRankBars,
+  BalanceTilt,
+  BubbleTrail,
+  DuelTowers,
+  GlyphTiles,
   MediaStack,
   MonthSparkline,
-  SplitDonut,
   SpeedMeters,
   StreakDots,
+  ThermoBar,
+  TwinArcs,
   VerticalBars,
   Waveform,
   YearCompareBars,
@@ -251,11 +255,12 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           }
           sub={copy.volume}
         >
-          <SplitDonut
+          <DuelTowers
             a={you.messageCount}
             b={them.messageCount}
-            aLabel={`You · ${formatNumber(you.messageCount)}`}
-            bLabel={`${them.name} · ${formatNumber(them.messageCount)}`}
+            bLabel={them.name}
+            aDisplay={formatNumber(you.messageCount)}
+            bDisplay={formatNumber(them.messageCount)}
           />
         </StatCard>
       ),
@@ -424,11 +429,12 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           headline={<span className="stat-card__line">{asYou(stats.badges.mostReliableOpener)}</span>}
           sub={copy.opener}
         >
-          <HorizontalRankBars
-            items={[
-              { label: 'You', value: you.daysStarted, display: String(you.daysStarted) },
-              { label: them.name, value: them.daysStarted, display: String(them.daysStarted) },
-            ]}
+          <DuelTowers
+            a={you.daysStarted}
+            b={them.daysStarted}
+            bLabel={them.name}
+            aDisplay={String(you.daysStarted)}
+            bDisplay={String(them.daysStarted)}
           />
         </StatCard>
       ),
@@ -450,19 +456,14 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           }
           sub={copy.double}
         >
-          <HorizontalRankBars
-            items={[
-              {
-                label: 'You',
-                value: you.maxConsecutiveWithoutReply,
-                display: String(you.maxConsecutiveWithoutReply),
-              },
-              {
-                label: them.name,
-                value: them.maxConsecutiveWithoutReply,
-                display: String(them.maxConsecutiveWithoutReply),
-              },
-            ]}
+          <BubbleTrail count={doubleTexter.maxConsecutiveWithoutReply} />
+          <DuelTowers
+            a={you.maxConsecutiveWithoutReply}
+            b={them.maxConsecutiveWithoutReply}
+            bLabel={them.name}
+            aDisplay={String(you.maxConsecutiveWithoutReply)}
+            bDisplay={String(them.maxConsecutiveWithoutReply)}
+            className="chart-duel--compact"
           />
         </StatCard>
       ),
@@ -483,14 +484,7 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
             headline={<span className="stat-card__mega">{d ? formatNumber(d.imbalance) : '0'}</span>}
             sub={copy.oneSided}
           >
-            {d ? (
-              <HorizontalRankBars
-                items={[
-                  { label: 'You', value: youN, display: formatNumber(youN) },
-                  { label: them.name, value: themN, display: formatNumber(themN) },
-                ]}
-              />
-            ) : null}
+            {d ? <BalanceTilt left={youN} right={themN} rightLabel={them.name} /> : null}
           </StatCard>
         )
       },
@@ -513,11 +507,13 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           sub={copy.voice}
         >
           <Waveform />
-          <HorizontalRankBars
-            items={[
-              { label: 'You', value: you.voiceCount, display: formatNumber(you.voiceCount) },
-              { label: them.name, value: them.voiceCount, display: formatNumber(them.voiceCount) },
-            ]}
+          <DuelTowers
+            a={you.voiceCount}
+            b={them.voiceCount}
+            bLabel={them.name}
+            aDisplay={formatNumber(you.voiceCount)}
+            bDisplay={formatNumber(them.voiceCount)}
+            className="chart-duel--compact"
           />
         </StatCard>
       ),
@@ -558,19 +554,10 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           }
           sub={copy.essay}
         >
-          <HorizontalRankBars
-            items={[
-              {
-                label: 'You avg',
-                value: you.avgWordsPerMessage,
-                display: you.avgWordsPerMessage.toFixed(1),
-              },
-              {
-                label: `${them.name} avg`,
-                value: them.avgWordsPerMessage,
-                display: them.avgWordsPerMessage.toFixed(1),
-              },
-            ]}
+          <ThermoBar
+            value={longestMsg.longestMessageWords}
+            max={Math.max(longestMsg.longestMessageWords, you.avgWordsPerMessage * 10, 40)}
+            label={`avg you ${you.avgWordsPerMessage.toFixed(1)} · ${them.name} ${them.avgWordsPerMessage.toFixed(1)}`}
           />
         </StatCard>
       ),
@@ -582,38 +569,30 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
             gradient: 'var(--grad-essay)',
             pattern: 'grid',
             render: () => (
-              <div className="motif-wrap">
+              <StatCard
+                mood="scroll"
+                layout="chart"
+                eyebrow="Edit spiral"
+                headline={
+                  <>
+                    <span className="stat-card__mega">
+                      {formatNumber(you.editedCount + them.editedCount)}
+                    </span>
+                    <span className="stat-card__mega-label">rewrites</span>
+                  </>
+                }
+                sub={copy.editSpiral}
+              >
                 <RewriteSpiral />
-                <StatCard
-                  mood="scroll"
-                  layout="chart"
-                  eyebrow="Edit spiral"
-                  headline={
-                    <>
-                      <span className="stat-card__mega">
-                        {formatNumber(you.editedCount + them.editedCount)}
-                      </span>
-                      <span className="stat-card__mega-label">rewrites</span>
-                    </>
-                  }
-                  sub={copy.editSpiral}
-                >
-                  <HorizontalRankBars
-                    items={[
-                      {
-                        label: 'You',
-                        value: you.editedCount,
-                        display: formatNumber(you.editedCount),
-                      },
-                      {
-                        label: them.name,
-                        value: them.editedCount,
-                        display: formatNumber(them.editedCount),
-                      },
-                    ]}
-                  />
-                </StatCard>
-              </div>
+                <DuelTowers
+                  a={you.editedCount}
+                  b={them.editedCount}
+                  bLabel={them.name}
+                  aDisplay={formatNumber(you.editedCount)}
+                  bDisplay={formatNumber(them.editedCount)}
+                  className="chart-duel--compact"
+                />
+              </StatCard>
             ),
           },
         ] as StorySlide[])
@@ -625,8 +604,8 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
             gradient: 'var(--grad-read)',
             pattern: 'halftone',
             render: () => {
-              const polish = you.avgEditDelayMs ?? them.avgEditDelayMs
-              const reply = you.avgReplyMs ?? them.avgReplyMs
+              const polish = you.avgEditDelayMs ?? them.avgEditDelayMs ?? 0
+              const reply = you.avgReplyMs ?? them.avgReplyMs ?? 0
               return (
                 <StatCard
                   mood="think"
@@ -635,44 +614,16 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
                   headline={<span className="stat-card__line">Speed of second thoughts</span>}
                   sub={copy.polishVsReply}
                 >
-                  <HorizontalRankBars
-                    items={[
-                      {
-                        label: 'Your polish',
-                        value: polish ?? 0,
-                        display: polish != null ? formatDuration(polish) : '—',
-                      },
-                      {
-                        label: 'Your reply',
-                        value: you.avgReplyMs ?? 0,
-                        display:
-                          you.avgReplyMs != null ? formatDuration(you.avgReplyMs) : '—',
-                      },
-                      ...(them.avgEditDelayMs != null
-                        ? [
-                            {
-                              label: `${them.name} polish`,
-                              value: them.avgEditDelayMs,
-                              display: formatDuration(them.avgEditDelayMs),
-                            },
-                          ]
-                        : []),
-                      ...(reply != null && you.avgReplyMs == null
-                        ? [
-                            {
-                              label: `${them.name} reply`,
-                              value: them.avgReplyMs ?? 0,
-                              display:
-                                them.avgReplyMs != null
-                                  ? formatDuration(them.avgReplyMs)
-                                  : '—',
-                            },
-                          ]
-                        : []),
-                    ]}
+                  <TwinArcs
+                    leftValue={polish}
+                    rightValue={reply || 1}
+                    leftLabel="Your polish"
+                    rightLabel="Your reply"
+                    leftDisplay={you.avgEditDelayMs != null ? formatDuration(you.avgEditDelayMs) : '—'}
+                    rightDisplay={you.avgReplyMs != null ? formatDuration(you.avgReplyMs) : '—'}
                   />
                   <p className="chart-caption">
-                    Exports have no read receipts — polish = send → edit delay
+                    No read receipts in exports — polish = send → edit
                   </p>
                 </StatCard>
               )
@@ -692,17 +643,17 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
           headline={<span className="stat-card__line">Spicy punctuation</span>}
           sub={copy.chaos}
         >
-          <HorizontalRankBars
+          <GlyphTiles
             items={[
               {
-                label: `! · ${asYou(bangKing.name)}`,
-                value: bangKing.exclamationCount,
-                display: formatNumber(bangKing.exclamationCount),
+                glyph: '!',
+                label: asYou(bangKing.name),
+                value: formatNumber(bangKing.exclamationCount),
               },
               {
-                label: `CAPS · ${asYou(capsKing.name)}`,
-                value: capsKing.allCapsCount,
-                display: formatNumber(capsKing.allCapsCount),
+                glyph: 'Aa',
+                label: asYou(capsKing.name),
+                value: formatNumber(capsKing.allCapsCount),
               },
             ]}
           />
