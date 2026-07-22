@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ProgressDots } from './ProgressDots'
 import type { StorySlide } from './cards'
 
-const AUTO_MS = 6500
+/** Default beat — long enough to read a caption + glance at a chart. */
+const AUTO_MS = 8500
+/** Press longer than this = pause only; shorter = tap to skip. */
+const HOLD_PAUSE_MS = 220
 
 interface StoryPlayerProps {
   slides: StorySlide[]
@@ -16,9 +19,11 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
   const rafRef = useRef<number | null>(null)
   const startRef = useRef<number>(0)
   const accruedRef = useRef(0)
+  const pointerDownAt = useRef(0)
 
   const slide = slides[index]
   const hold = Boolean(slide?.hold)
+  const durationMs = slide?.durationMs ?? AUTO_MS
 
   const go = useCallback(
     (next: number) => {
@@ -45,7 +50,7 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
   useEffect(() => {
     if (hold) {
       setProgress(1)
-      accruedRef.current = AUTO_MS
+      accruedRef.current = durationMs
       return
     }
     if (paused) return
@@ -54,7 +59,7 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
 
     const tick = (now: number) => {
       const elapsed = accruedRef.current + (now - startRef.current)
-      const p = Math.min(1, elapsed / AUTO_MS)
+      const p = Math.min(1, elapsed / durationMs)
       setProgress(p)
       if (p >= 1) {
         accruedRef.current = 0
@@ -68,28 +73,30 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       const now = performance.now()
-      accruedRef.current = Math.min(AUTO_MS, accruedRef.current + (now - startRef.current))
+      accruedRef.current = Math.min(durationMs, accruedRef.current + (now - startRef.current))
     }
-  }, [index, paused, hold, go])
+  }, [index, paused, hold, go, durationMs])
 
   function onPointerDown() {
     if (hold) return
+    pointerDownAt.current = performance.now()
     setPaused(true)
   }
 
-  function onPointerUp(e: ReactPointerEvent) {
+  /** True when the user held long enough that this should not count as a tap. */
+  function wasPauseHold() {
+    return performance.now() - pointerDownAt.current >= HOLD_PAUSE_MS
+  }
+
+  function onZoneUp(direction: -1 | 1) {
     if (hold) {
-      // Only allow going back from the download slide via left third
-      const x = e.clientX
-      const w = window.innerWidth
-      if (x < w * 0.33) go(index - 1)
+      if (direction === -1) go(index - 1)
       return
     }
     setPaused(false)
-    const x = e.clientX
-    const w = window.innerWidth
-    if (x < w * 0.33) go(index - 1)
-    else go(index + 1)
+    // Hold-to-pause: resume in place. Tap: skip.
+    if (wasPauseHold()) return
+    go(index + direction)
   }
 
   if (!slide) return null
@@ -123,10 +130,7 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
           className="story__zone story__zone--left"
           aria-label="Previous"
           onPointerDown={onPointerDown}
-          onPointerUp={() => {
-            setPaused(false)
-            go(index - 1)
-          }}
+          onPointerUp={() => onZoneUp(-1)}
         />
         {!hold ? (
           <button
@@ -134,14 +138,16 @@ export function StoryPlayer({ slides, onExit }: StoryPlayerProps) {
             className="story__zone story__zone--right"
             aria-label="Next"
             onPointerDown={onPointerDown}
-            onPointerUp={(e: ReactPointerEvent) => onPointerUp(e)}
+            onPointerUp={() => onZoneUp(1)}
           />
         ) : null}
         <div className="story__body">{slide.render()}</div>
       </div>
 
       <p className="story__hint">
-        {hold ? 'Download your cards · tap left to go back · × to close' : 'Tap left / right · hold to pause'}
+        {hold
+          ? 'Download your cards · tap left to go back · × to close'
+          : 'Tap to skip · hold to pause'}
       </p>
     </div>
   )

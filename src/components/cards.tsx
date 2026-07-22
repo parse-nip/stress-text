@@ -90,8 +90,32 @@ export interface StorySlide {
   pattern: StoryPattern
   /** Freeze auto-advance (used on the final download slide). */
   hold?: boolean
+  /** Override auto-advance length for denser / chart-heavy cards. */
+  durationMs?: number
   render: () => ReactNode
 }
+
+/** Chart-forward or text-dense slides get a longer beat so autoplay doesn’t feel rushed. */
+const LINGER_SLIDE_MS = 11_000
+const LINGER_IDS = new Set([
+  'monthly',
+  'year-compare',
+  'volume',
+  'reply-speed',
+  'prime-time',
+  'funniest-hour',
+  'opener',
+  'double-text',
+  'one-sided',
+  'voice',
+  'media',
+  'essay',
+  'edit-spiral',
+  'polish-vs-reply',
+  'chaos',
+  'lex',
+  'badges',
+])
 
 export function buildSlides(stats: WrappedStats): StorySlide[] {
   const { you, them } = stats
@@ -802,7 +826,9 @@ export function buildSlides(stats: WrappedStats): StorySlide[] {
     },
   )
 
-  return slides
+  return slides.map((s) =>
+    LINGER_IDS.has(s.id) && s.durationMs == null ? { ...s, durationMs: LINGER_SLIDE_MS } : s,
+  )
 }
 
 function LexWordCard({

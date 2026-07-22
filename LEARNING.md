@@ -20,6 +20,7 @@ Track what you understand as we build. Check items only when you can explain the
 - [ ] **Double-text streak**: consecutive messages from the same person with no intervening reply
 - [ ] **One-sided day**: max `|your count − their count|` on a single date
 - [ ] Story UI: auto-advance + Instagram-style progress dots + tap zones
+- [ ] How to keep autoplay *and* avoid rush: longer beats on dense cards + **hold pauses without skipping** (tap = skip, hold = linger)
 
 ## 3. Design decisions
 
