@@ -470,7 +470,7 @@ function SummaryGrid({ stats }: { stats: WrappedStats }) {
       const dataUrl = await toPng(ref.current, {
         cacheBust: true,
         pixelRatio: 2,
-        backgroundColor: '#1a0a2e',
+        backgroundColor: '#0a0410',
       })
       const a = document.createElement('a')
       a.href = dataUrl

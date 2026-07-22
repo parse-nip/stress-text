@@ -1,37 +1,48 @@
 /* Telegram Wrapped — Spotify-Wrapped energy, Telegram colors */
 
 :root {
-  --tg-blue: #2aabee;
-  --tg-blue-deep: #0e6fa8;
-  --pink: #e879f9;
-  --magenta: #c026d3;
-  --violet: #7c3aed;
-  --ink: #0b0620;
-  --foam: #f7f4ff;
-  --foam-dim: rgba(247, 244, 255, 0.72);
+  /* Bold Wrapped palette — vivid, flat, high-contrast */
+  --c-magenta: #ff1f7a;
+  --c-pink: #ff3d9a;
+  --c-red: #ff2d3f;
+  --c-orange: #ff5a1f;
+  --c-amber: #d98600;
+  --c-lime: #b9ff2e;
+  --c-cyan: #0d8fb8;
+  --c-teal: #00a58f;
+  --c-blue: #2f5bff;
+  --c-cobalt: #1c39ff;
+  --c-violet: #6a2cf5;
+  --c-purple: #9a2fff;
+
+  --ink: #0a0410;
+  --ink-2: #16031f;
+  --foam: #ffffff;
+  --foam-dim: rgba(255, 255, 255, 0.74);
   --card-accent: #fff;
 
   --font-display: 'Syne', 'Avenir Next', 'Segoe UI', sans-serif;
   --font-body: 'DM Sans', 'Avenir Next', 'Segoe UI', sans-serif;
 
-  --grad-intro: linear-gradient(160deg, #0ea5e9 0%, #6366f1 45%, #db2777 100%);
-  --grad-volume: linear-gradient(160deg, #0284c7 0%, #4f46e5 100%);
-  --grad-speed: linear-gradient(145deg, #06b6d4 0%, #2563eb 55%, #7c3aed 100%);
-  --grad-read: linear-gradient(160deg, #1e1b4b 0%, #4c1d95 50%, #831843 100%);
-  --grad-night: linear-gradient(180deg, #020617 0%, #1e3a8a 40%, #581c87 100%);
-  --grad-fire: linear-gradient(160deg, #ea580c 0%, #db2777 50%, #7c3aed 100%);
-  --grad-prime: linear-gradient(160deg, #0ea5e9 0%, #8b5cf6 100%);
-  --grad-opener: linear-gradient(160deg, #22d3ee 0%, #a855f7 100%);
-  --grad-double: linear-gradient(160deg, #f472b6 0%, #7c3aed 100%);
-  --grad-onesided: linear-gradient(160deg, #fb7185 0%, #6366f1 100%);
-  --grad-voice: linear-gradient(160deg, #38bdf8 0%, #c026d3 100%);
-  --grad-media: linear-gradient(160deg, #818cf8 0%, #ec4899 100%);
-  --grad-essay: linear-gradient(160deg, #a78bfa 0%, #f472b6 55%, #fbbf24 100%);
-  --grad-chaos: linear-gradient(160deg, #f43f5e 0%, #8b5cf6 100%);
-  --grad-emoji: linear-gradient(160deg, #fbbf24 0%, #ec4899 50%, #8b5cf6 100%);
-  --grad-comeback: linear-gradient(160deg, #312e81 0%, #9d174d 100%);
-  --grad-badges: linear-gradient(160deg, #0ea5e9 0%, #d946ef 100%);
-  --grad-summary: linear-gradient(160deg, #1a0a2e 0%, #4c1d95 40%, #9d174d 100%);
+  /* Flat, bold card fills — no soft rainbow blends */
+  --grad-intro: var(--c-magenta);
+  --grad-volume: var(--c-cobalt);
+  --grad-speed: var(--c-red);
+  --grad-read: var(--c-violet);
+  --grad-night: #141e8c;
+  --grad-fire: var(--c-orange);
+  --grad-prime: var(--c-cyan);
+  --grad-opener: var(--c-teal);
+  --grad-double: var(--c-pink);
+  --grad-onesided: #ff4a2b;
+  --grad-voice: var(--c-purple);
+  --grad-media: var(--c-blue);
+  --grad-essay: var(--c-amber);
+  --grad-chaos: #ff1f52;
+  --grad-emoji: var(--c-magenta);
+  --grad-comeback: #5a2ce6;
+  --grad-badges: var(--c-blue);
+  --grad-summary: var(--ink);
 }
 
 *,
@@ -71,24 +82,46 @@ button {
   padding: 2.5rem 1.25rem 3rem;
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(42, 171, 238, 0.35), transparent 55%),
-    radial-gradient(ellipse 70% 45% at 90% 80%, rgba(192, 38, 211, 0.35), transparent 50%),
-    linear-gradient(165deg, #061428 0%, #1a0a2e 45%, #3b0764 100%);
+  background: var(--ink);
+}
+
+/* Bold static angular shapes — corner blocks, not a soft glow */
+.landing::before,
+.landing::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.landing::before {
+  top: -8%;
+  left: -6%;
+  width: 62%;
+  height: 46%;
+  background: var(--c-magenta);
+  clip-path: polygon(0 0, 100% 0, 100% 40%, 46% 100%, 0 62%);
+}
+
+.landing::after {
+  right: -8%;
+  bottom: -8%;
+  width: 60%;
+  height: 48%;
+  background: var(--c-cobalt);
+  clip-path: polygon(54% 0, 100% 34%, 100% 100%, 0 100%, 20% 46%);
 }
 
 .landing__glow {
   position: absolute;
-  inset: -20%;
-  background: conic-gradient(from 120deg, transparent, rgba(42, 171, 238, 0.12), transparent 40%, rgba(232, 121, 249, 0.1), transparent 70%);
-  animation: spin-slow 28s linear infinite;
+  z-index: 0;
+  top: 30%;
+  right: 12%;
+  width: 34%;
+  height: 30%;
+  background: var(--c-lime);
+  clip-path: polygon(0 22%, 74% 0, 100% 70%, 30% 100%);
   pointer-events: none;
-}
-
-@keyframes spin-slow {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .landing__brand {
@@ -101,13 +134,12 @@ button {
 .landing__brand h1 {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(2.4rem, 8vw, 3.75rem);
-  letter-spacing: -0.04em;
+  font-size: clamp(2.6rem, 9vw, 4.25rem);
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
   margin: 0.75rem 0 0.5rem;
-  background: linear-gradient(120deg, #e0f2fe, #f5d0fe 45%, #fda4af);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--foam);
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.55);
 }
 
 .landing__tagline {
@@ -115,6 +147,7 @@ button {
   margin: 0 auto;
   color: var(--foam-dim);
   font-size: 1.05rem;
+  font-weight: 500;
   line-height: 1.45;
 }
 
@@ -123,10 +156,9 @@ button {
   z-index: 1;
   width: min(420px, 100%);
   padding: 1.75rem 1.5rem;
-  border: 1.5px dashed rgba(255, 255, 255, 0.35);
-  border-radius: 1.25rem;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(10px);
+  border: 2.5px dashed rgba(255, 255, 255, 0.55);
+  border-radius: 0.5rem;
+  background: rgba(10, 4, 16, 0.72);
   cursor: pointer;
   text-align: center;
   transition: border-color 0.2s, background 0.2s, transform 0.2s;
@@ -134,8 +166,8 @@ button {
 
 .dropzone:hover,
 .dropzone--active {
-  border-color: #f5d0fe;
-  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--c-lime);
+  background: rgba(10, 4, 16, 0.85);
   transform: translateY(-2px);
 }
 
@@ -224,12 +256,29 @@ button {
   z-index: 1;
   margin-top: 1.25rem;
   background: transparent;
-  color: #f5d0fe;
-  border: 1px solid rgba(245, 208, 254, 0.35);
+  color: var(--foam);
+  border: 2px solid rgba(255, 255, 255, 0.4);
 }
 
 .btn--ghost:hover {
-  background: rgba(245, 208, 254, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Landing's demo button = bold hero CTA */
+.landing > .btn--ghost {
+  background: var(--c-lime);
+  color: #0a0410;
+  border: none;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0.85rem 1.6rem;
+}
+
+.landing > .btn--ghost:hover {
+  background: #cbff55;
+  transform: translateY(-2px);
 }
 
 .btn--choice {
@@ -239,28 +288,34 @@ button {
   gap: 0.2rem;
   width: 100%;
   text-align: left;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   padding: 1rem 1.15rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--foam);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  font-weight: 700;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
 }
 
 .btn--choice:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--c-magenta);
+  border-color: var(--c-magenta);
+  transform: translateY(-2px);
 }
 
 .btn--choice small {
   font-weight: 500;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
 .btn--export {
   margin-top: 1.25rem;
-  background: #fff;
-  color: #1a0a2e;
+  background: var(--c-lime);
+  color: #0a0410;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 /* ——— Setup ——— */
@@ -270,21 +325,52 @@ button {
   display: grid;
   place-items: center;
   padding: 2rem 1.25rem;
-  background:
-    radial-gradient(ellipse at 30% 20%, rgba(42, 171, 238, 0.3), transparent 50%),
-    linear-gradient(165deg, #061428, #3b0764);
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+.setup::before,
+.setup::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.setup::before {
+  top: -10%;
+  right: -10%;
+  width: 58%;
+  height: 44%;
+  background: var(--c-magenta);
+  clip-path: polygon(30% 0, 100% 0, 100% 100%, 0 40%);
+}
+
+.setup::after {
+  left: -10%;
+  bottom: -10%;
+  width: 54%;
+  height: 42%;
+  background: var(--c-blue);
+  clip-path: polygon(0 30%, 74% 66%, 100% 100%, 0 100%);
 }
 
 .setup__card {
+  position: relative;
+  z-index: 1;
   width: min(440px, 100%);
   text-align: center;
 }
 
 .setup__card h2 {
   font-family: var(--font-display);
-  font-size: 1.85rem;
+  font-weight: 800;
+  font-size: clamp(1.9rem, 6vw, 2.6rem);
+  text-transform: uppercase;
   margin: 0 0 0.4rem;
   letter-spacing: -0.03em;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .setup__card > p {
@@ -310,6 +396,41 @@ button {
   touch-action: manipulation;
   overflow: hidden;
   position: relative;
+  isolation: isolate;
+}
+
+/* Bold 3D-ribbon facets — stripes clipped into chevrons, tinted to each card's hue */
+.story::before,
+.story::after {
+  content: '';
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  z-index: 0;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+.story::before {
+  top: 0;
+  height: 40%;
+  background: repeating-linear-gradient(
+    122deg,
+    rgba(0, 0, 0, 0.42) 0 15px,
+    rgba(255, 255, 255, 0.16) 15px 30px
+  );
+  clip-path: polygon(0 0, 100% 0, 100% 46%, 66% 100%, 34% 52%, 0 100%);
+}
+
+.story::after {
+  bottom: 0;
+  height: 44%;
+  background: repeating-linear-gradient(
+    58deg,
+    rgba(0, 0, 0, 0.46) 0 17px,
+    rgba(255, 255, 255, 0.14) 17px 34px
+  );
+  clip-path: polygon(0 54%, 34% 0, 66% 48%, 100% 0, 100% 100%, 0 100%);
 }
 
 .story__chrome {
@@ -443,12 +564,16 @@ button {
 }
 
 .stat-card__eyebrow {
-  margin: 0 0 0.65rem;
-  font-size: 0.8rem;
-  letter-spacing: 0.14em;
+  display: inline-block;
+  margin: 0 0 0.85rem;
+  padding: 0.28rem 0.7rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  font-weight: 800;
+  color: #0a0410;
+  background: var(--foam);
+  border-radius: 0.35rem;
 }
 
 .stat-card__headline {
@@ -456,13 +581,15 @@ button {
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1.05;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .stat-card__mega {
   display: block;
-  font-size: clamp(3.2rem, 14vw, 5.5rem);
-  line-height: 0.95;
-  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+  font-size: clamp(3.6rem, 16vw, 6.25rem);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.45);
 }
 
 .stat-card__mega-label {
@@ -497,8 +624,10 @@ button {
   margin: 1rem auto 0;
   max-width: 22rem;
   font-size: 1.05rem;
+  font-weight: 500;
   line-height: 1.45;
-  color: rgba(255, 255, 255, 0.82);
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
 }
 
 /* Bars */
@@ -520,9 +649,9 @@ button {
 }
 
 .bar-compare__track {
-  height: 8px;
+  height: 10px;
   border-radius: 99px;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.3);
   overflow: hidden;
 }
 
@@ -533,11 +662,11 @@ button {
 }
 
 .bar-compare__fill--you {
-  background: #e0f2fe;
+  background: var(--foam);
 }
 
 .bar-compare__fill--them {
-  background: #f5d0fe;
+  background: var(--c-lime);
 }
 
 /* Chaos / badges */
@@ -560,9 +689,10 @@ button {
   align-items: baseline;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  background: rgba(0, 0, 0, 0.22);
-  border-radius: 0.85rem;
+  background: rgba(10, 4, 16, 0.55);
+  border-radius: 0.4rem;
   font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .chaos-list li span:first-child {
@@ -676,11 +806,44 @@ button {
 }
 
 .summary-grid {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   padding: 1.25rem;
-  border-radius: 1.15rem;
-  background: linear-gradient(160deg, #1a0a2e, #4c1d95 55%, #9d174d);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  border-radius: 0.75rem;
+  background: var(--ink);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.summary-grid::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -15%;
+  width: 60%;
+  height: 55%;
+  background: var(--c-magenta);
+  clip-path: polygon(35% 0, 100% 0, 100% 100%, 0 45%);
+  pointer-events: none;
+}
+
+.summary-grid::after {
+  content: '';
+  position: absolute;
+  left: -12%;
+  bottom: -18%;
+  width: 45%;
+  height: 40%;
+  background: var(--c-lime);
+  clip-path: polygon(0 40%, 70% 70%, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.summary-grid__header,
+.summary-grid__cells,
+.summary-grid__footer {
+  position: relative;
+  z-index: 1;
 }
 
 .summary-grid__header {
@@ -716,8 +879,9 @@ button {
 
 .summary-cell {
   padding: 0.85rem 0.75rem;
-  background: rgba(0, 0, 0, 0.28);
-  border-radius: 0.75rem;
+  background: rgba(10, 4, 16, 0.82);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.4rem;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
